@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "name": "notification",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "%NOTIFICATIONS_TO_SEND_QUEUE%",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "failed",
+      "type": "queue",
+      "direction": "out",
+      "queueName": "%NOTIFICATIONS_FAILED_TO_SEND_QUEUE%",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false
+}

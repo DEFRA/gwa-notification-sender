@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "name": "myBlob",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "%CONTACT_LISTS_INITIAL_CONTAINER%/{initialContactListBlobName}",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "blobContents",
+      "type": "blob",
+      "direction": "in",
+      "path": "%CONTACT_LISTS_INITIAL_CONTAINER%/{initialContactListBlobName}",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false
+}

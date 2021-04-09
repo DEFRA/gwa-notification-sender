@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  gwa-notification-sender:
+    build:
+      context: .
+    image: gwa-notification-sender
+    container_name: gwa-notification-sender
+    restart: always
+    environment:
+      AUTH_LEVEl: 'function' # not working
+    ports:
+      - 8080:80

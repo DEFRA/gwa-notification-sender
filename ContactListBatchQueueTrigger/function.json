@@ -1,0 +1,19 @@
+{
+  "bindings": [
+    {
+      "name": "contactListBatchFileName",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "%CONTACT_LISTS_BATCHES_QUEUE%",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "messagesToSend",
+      "type": "queue",
+      "direction": "out",
+      "queueName": "%NOTIFICATIONS_TO_SEND_QUEUE%",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false
+}

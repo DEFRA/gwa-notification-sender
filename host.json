@@ -8,6 +8,14 @@
       }
     }
   },
+  "extensions": {
+    "blobs": {
+      "maxDegreeOfParallelism": "1"
+    },
+    "queues": {
+      "batchSize": 16
+    }
+  },
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[1.*, 2.0.0)"
