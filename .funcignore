@@ -1,0 +1,5 @@
+.funcignore
+.gitignore
+LICENCE
+README.md
+super-linter.log
