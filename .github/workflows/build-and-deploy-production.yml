@@ -1,11 +1,11 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and Deploy Staging
+name: Build and Deploy Production
 
 on:
   push:
-    branches-ignore:
+    branches:
       - main
   workflow_dispatch:
 
@@ -29,13 +29,13 @@ jobs:
       run: npm ci
 
     - name: Lint Code Base
-      uses: github/super-linter@v3
+      run: npm run lint
 
     - name: Deploy Function App
       uses: Azure/functions-action@v1
       id: fa
       with:
         app-name: 'shunt-gwa-notification-sender'
-        slot-name: 'staging'
+        slot-name: 'production'
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        publish-profile: ${{ secrets.AZURE_FUNCTION_APP_PUBLISH_PROFILE_STAGING_SLOT }}
+        publish-profile: ${{ secrets.AZURE_FUNCTION_APP_PUBLISH_PROFILE_PRODUCTION_SLOT }}
