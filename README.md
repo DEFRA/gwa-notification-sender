@@ -11,7 +11,7 @@ detail in its' own README:
 
 * [ContactListBatchQueueTrigger](ContactListBatchQueueTrigger/README.md)
 * [ContactListBlobTrigger](ContactListBlobTrigger/README.md)
-* [MessageToSendQueue](MessageToSendQueue/README.md)
+* [MessageToSendQueueTrigger](MessageToSendQueueTrigger/README.md)
 
 ## License
 
