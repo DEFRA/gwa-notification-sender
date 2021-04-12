@@ -26,7 +26,7 @@ module.exports = async function (context) {
     const batches = []
     while (contacts.length) {
       batches.push({
-        contacts: contacts.splice(0, 1500),
+        contacts: contacts.splice(0, 1200),
         message
       })
     }
