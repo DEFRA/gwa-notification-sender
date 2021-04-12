@@ -26,7 +26,7 @@ module.exports = async function (context) {
     const batches = []
     while (contacts.length) {
       batches.push({
-        contacts: contacts.splice(0, 2000),
+        contacts: contacts.splice(0, 2500),
         message
       })
     }
@@ -41,8 +41,8 @@ module.exports = async function (context) {
       const content = JSON.stringify(batches[i])
       promises.push(blockBlobClient.upload(content, content.length, { blobHTTPHeaders: { blobContentType: 'application/json' } }))
 
-      // Add a message (with future visibility) including the name of file to process
-      const visibilityTimeout = 65 * (i + 1) // first is visible in 5 seconds
+      // Add a message for file to process at staggered time in future
+      const visibilityTimeout = 65 * (i + 1)
       const buf = Buffer.from(blobName, 'utf8')
       promises.push(qClient.sendMessage(buf.toString('base64'), { visibilityTimeout }))
       blobs.push({
