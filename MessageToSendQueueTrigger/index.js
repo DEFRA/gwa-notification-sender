@@ -30,7 +30,10 @@ module.exports = async function (context) {
 
     if (isRateLimitError(error)) {
       // Move to rateLimitExceeded queue.
-      context.bindings.rateLimitExceeded = notification
+      context.bindings.rateLimitExceeded = {
+        error,
+        notification
+      }
       // Do not rethrow - no point in retrying right now.
     } else {
       // Message will go to poision queue after dequeueCount has reached max
@@ -44,9 +47,7 @@ module.exports = async function (context) {
         // Add to failed queue for later inspection
         context.bindings.failed = {
           error,
-          originalNotification: {
-            ...notification
-          }
+          notification
         }
       }
     }
