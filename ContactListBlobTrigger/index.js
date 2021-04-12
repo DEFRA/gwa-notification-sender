@@ -1,18 +1,19 @@
 const { BlobServiceClient } = require('@azure/storage-blob')
-const { QueueServiceClient } = require('@azure/storage-queue')
+const { QueueClient } = require('@azure/storage-queue')
 
 const connectionString = process.env.AzureWebJobsStorage
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
-const qServiceClient = QueueServiceClient.fromConnectionString(connectionString)
 
-// Clients for managing contact lists
 const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LISTS_BATCHES_CONTAINER)
+// Prevent erroring if container doesn't exist
+batchesContainerClient.createIfNotExists()
 const initialContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LISTS_INITIAL_CONTAINER)
 
 // Client for adding messages for batch files
 const batchesQ = process.env.CONTACT_LISTS_BATCHES_QUEUE
-const qClient = qServiceClient.getQueueClient(batchesQ)
+const qClient = new QueueClient(connectionString, batchesQ)
+qClient.createIfNotExists()
 
 module.exports = async function (context) {
   try {
@@ -51,12 +52,13 @@ module.exports = async function (context) {
     }
     context.log('Blobs uploaded:', blobs)
 
+    await Promise.all(promises)
+
     // Delete the inital contact list
     context.log(`'${initialContactListBlobName}' initiated the function and will be deleted.`)
     const blobClient = initialContainerClient.getBlobClient(initialContactListBlobName)
-    promises.push(blobClient.delete())
 
-    await Promise.all(promises)
+    await blobClient.delete()
   } catch (e) {
     context.log.error(e)
     // Throwing an error ensures the built-in retry will kick in
