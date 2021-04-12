@@ -13,6 +13,13 @@
       "direction": "out",
       "queueName": "%NOTIFICATIONS_FAILED_TO_SEND_QUEUE%",
       "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "rateLimitExceeded",
+      "type": "queue",
+      "direction": "out",
+      "queueName": "%NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE%",
+      "connection": "AzureWebJobsStorage"
     }
   ],
   "disabled": false

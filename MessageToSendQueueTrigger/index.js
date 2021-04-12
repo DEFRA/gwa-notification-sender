@@ -18,11 +18,15 @@ module.exports = async function (context) {
   } catch (e) {
     const error = e?.response?.data ?? e
     context.log.error(error)
-    // Add to failed queue for later inspection
-    context.bindings.failed = {
-      error,
-      originalNotification: {
-        ...notification
+    if (error?.status_code === 429) {
+      context.bindings.rateLimitExceeded = notification
+    } else {
+      // Add to failed queue for later inspection
+      context.bindings.failed = {
+        error,
+        originalNotification: {
+          ...notification
+        }
       }
     }
     // Don't rethrow - we don't want to keep making the requests if it is wrong
