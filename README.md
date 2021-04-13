@@ -6,14 +6,19 @@
 
 ## Functions
 
-The app is made up of a number of functions, each function is explained in more
-detail in its' own README:
+The app is made up of a number of functions, working as a unit processing
+contact data into messages. The process is initiated when a file is uploaded to
+a container that the `ContactListBlobTrigger` function triggers on. Data is
+then processed by `ContactListBatchQueueTrigger` before being processed by
+`MessageToSendQueueTrigger`.
+
+Each function is explained in more detail in its' own README:
 
 * [ContactListBatchQueueTrigger](ContactListBatchQueueTrigger/README.md)
 * [ContactListBlobTrigger](ContactListBlobTrigger/README.md)
 * [MessageToSendQueueTrigger](MessageToSendQueueTrigger/README.md)
 
-## Development
+## Function Development
 
 The best place to start for an overall view of how JavaScript Functions work in
 Azure is the
@@ -27,6 +32,29 @@ or
 The documentation within this repo assumes the `command line` setup has been
 completed, specifically for
 [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+
+## Running Locally
+
+To start the function app run `func start`.
+
+### Pre-requisites
+
+The function app uses Azure Storage, specifically blobs and queues. When
+working locally
+[Azurite](https://github.com/Azure/Azurite) can be used to emulate storage.
+Follow the
+[instructions](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azurite)
+for your preferred installation option.
+
+The app will initiate the process when a file is uploaded to the container
+specified by the env var `CONTACT_LISTS_INITIAL_CONTAINER` e.g.
+`contact-lists-initial-local`. The other containers and queues used by the app
+will be created if they do not already exist.
+
+The app uses `local.settings.json` for local development.
+[example.local.settings.json](example.local.settings.json) can be used as the
+basis as it contains all required env vars with the exception of secrets which
+have been removed. The connection string for Azurite is included.
 
 ## License
 
