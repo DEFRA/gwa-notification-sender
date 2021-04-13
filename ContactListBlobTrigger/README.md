@@ -13,8 +13,8 @@ and without a rate limiting mechanism the function will far exceed that. Along
 with creating the files for the batches of contacts a message is added to an
 Azure Queue Storage queue for each file. Each message is created with
 [`visibilityTimeout`](https://azuresdkdocs.blob.core.windows.net/$web/javascript/azure-storage-queue/12.4.0/interfaces/queuesendmessageoptions.html#visibilitytimeout)
-set to be at ~60 second gaps. This has the effect of
-batching the sending of messages to Notify to be within the rate limits.
+set to be at enough of gap to mostly avoid hitting the rate limit. See
+[Batch sizes and gaps](#batch-sizes-and-gaps) for additional information.
 
 When the batch files and messages have been created and sent the file
 responsible for triggering the function is deleted.
@@ -62,3 +62,13 @@ Message sending is not expected to be a common scenario so
 this _shouldn't_ be a problem. If it transpires this is not the case some
 rework would be required to ensure the message sends were queued in order and
 did not exceed sending batches more than once per minute.
+
+### Batch sizes and gaps
+
+Through trial and error the batch size and gaps between them was settled on as
+2.5K messages every 90 seconds with a 30 second initial buffer to allow the
+processing of the first batch to be completed before the second batch begins.
+Smaller batch sizes being sent more frequently were tested down to 1.2K
+messages every 32 seconds and several batch sizes using 65+ second gaps.
+However, using a longer gap proved to be more successful at not hitting rate
+limits.
