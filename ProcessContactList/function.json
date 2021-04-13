@@ -4,14 +4,14 @@
       "name": "myBlob",
       "type": "blobTrigger",
       "direction": "in",
-      "path": "%CONTACT_LISTS_INITIAL_CONTAINER%/{initialContactListBlobName}",
+      "path": "%CONTACT_LIST_CONTAINER%/{contactListBlobName}",
       "connection": "AzureWebJobsStorage"
     },
     {
       "name": "blobContents",
       "type": "blob",
       "direction": "in",
-      "path": "%CONTACT_LISTS_INITIAL_CONTAINER%/{initialContactListBlobName}",
+      "path": "%CONTACT_LIST_CONTAINER%/{contactListBlobName}",
       "connection": "AzureWebJobsStorage"
     }
   ],
