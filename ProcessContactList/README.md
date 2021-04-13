@@ -5,9 +5,10 @@
 
 ## Detail
 
-The function triggers on files in an Azure Blob Storage container.  The purpose
+The function triggers on files in an Azure Blob Storage container. The purpose
 of the function is to process the file into smaller batches of contacts to send
-the message to. Notify has a rate limit of
+the message to.
+Notify has a rate limit of
 [3K messages per minute](https://docs.notifications.service.gov.uk/rest-api.html#rate-limits)
 and without a rate limiting mechanism the function will far exceed that. Along
 with creating the files for the batches of contacts a message is added to an
@@ -68,6 +69,9 @@ did not exceed sending batches more than once per minute.
 Through trial and error the batch size and gaps between them was settled on as
 2.5K messages every 90 seconds with a 30 second initial buffer to allow the
 processing of the first batch to be completed before the second batch begins.
+The initial buffer is sourced from an env var (`INITIAL_MESSAGE_VISIBILITY`) as
+having this set lower whilst developing is beneficial. It is suggested to have
+it to `1` for local dev with `30` used for other environments.
 Smaller batch sizes being sent more frequently were tested down to 1.2K
 messages every 32 seconds and several batch sizes using 65+ second gaps.
 However, using a longer gap proved to be more successful at not hitting rate

@@ -2,12 +2,13 @@ const { BlobServiceClient } = require('@azure/storage-blob')
 const { QueueClient } = require('@azure/storage-queue')
 
 const connectionString = process.env.AzureWebJobsStorage
+const initialVisibility = parseInt(process.env.INITIAL_MESSAGE_VISIBILITY, 10)
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
-
 const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_BATCHES_CONTAINER)
 // Prevent erroring if container doesn't exist
 batchesContainerClient.createIfNotExists()
+
 const contactListContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_CONTAINER)
 
 // Client for adding messages for batch files
@@ -42,7 +43,7 @@ module.exports = async function (context) {
       promises.push(blockBlobClient.upload(content, content.length, { blobHTTPHeaders: { blobContentType: 'application/json' } }))
 
       // Add a message for file to process at staggered time in future
-      const visibilityTimeout = 90 * i + 30
+      const visibilityTimeout = 90 * i + initialVisibility
       const buf = Buffer.from(blobName, 'utf8')
       promises.push(qClient.sendMessage(buf.toString('base64'), { visibilityTimeout }))
       blobs.push({
