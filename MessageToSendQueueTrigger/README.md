@@ -6,7 +6,7 @@
 ## Detail
 
 The function triggers on messages in an Azure Queue Storage queue that have
-been added by [ContactListBatchQueueTrigger](../ContactListBatchQueueTrigger).
+been added by [ProcessContactListBatches](../ProcessContactListBatches).
 The message includes the phone number to send the message too and the message
 to send. A
 [template id](https://docs.notifications.service.gov.uk/rest-api.html#request-body)

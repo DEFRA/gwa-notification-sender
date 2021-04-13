@@ -1,4 +1,4 @@
-# Contact List Batch Queue Trigger - JavaScript
+# Process Contact List Batches - JavaScript
 
 > Triggers on messages in a queue containing the name of a file with a batch of
 > contacts.
