@@ -8,13 +8,13 @@
 
 The app is made up of a number of functions, working as a unit processing
 contact data into messages. The process is initiated when a file is uploaded to
-a container that the `ProcessInitialContactList` function triggers on. Data is
+a container that the `ProcessContactList` function triggers on. Data is
 then processed by `ProcessContactListBatches` before being processed by
 `SendMessage`.
 
 Each function is explained in more detail in its' own README:
 
-* [ProcessInitialContactList](ProcessInitialContactList/README.md)
+* [ProcessContactList](ProcessContactList/README.md)
 * [ProcessContactListBatches](ProcessContactListBatches/README.md)
 * [SendMessage](SendMessage/README.md)
 
@@ -47,12 +47,12 @@ Follow the
 for your preferred installation option.
 
 The app will initiate the process when a file is uploaded to the container
-specified by the env var `CONTACT_LISTS_INITIAL_CONTAINER` e.g.
-`contact-lists-initial-local`. The other containers and queues used by the app
+specified by the env var `CONTACT_LIST_CONTAINER` e.g.
+`contact-list-local`. The other containers and queues used by the app
 will be created if they do not already exist.
 
 The app uses `local.settings.json` for local development.
-[example.local.settings.json](example.local.settings.json) can be used as the
+[.local.settings.json](.local.settings.json) can be used as the
 basis as it contains all required env vars with the exception of secrets which
 have been removed. The connection string for Azurite is included.
 
