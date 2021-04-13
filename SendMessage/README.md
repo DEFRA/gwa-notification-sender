@@ -1,4 +1,4 @@
-# Message To Send Queue Trigger - JavaScript
+# Send Message - JavaScript
 
 > Triggers on messages in a queue containing details
 > of a message to send to GOV.UK Notify.
