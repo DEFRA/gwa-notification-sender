@@ -5,19 +5,19 @@ const connectionString = process.env.AzureWebJobsStorage
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
 
-const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LISTS_BATCHES_CONTAINER)
+const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_BATCHES_CONTAINER)
 // Prevent erroring if container doesn't exist
 batchesContainerClient.createIfNotExists()
-const initialContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LISTS_INITIAL_CONTAINER)
+const contactListContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_CONTAINER)
 
 // Client for adding messages for batch files
-const batchesQ = process.env.CONTACT_LISTS_BATCHES_QUEUE
+const batchesQ = process.env.CONTACT_LIST_BATCHES_QUEUE
 const qClient = new QueueClient(connectionString, batchesQ)
 qClient.createIfNotExists()
 
 module.exports = async function (context) {
   try {
-    const { blobTrigger, initialContactListBlobName } = context.bindingData
+    const { blobTrigger, contactListBlobName } = context.bindingData
     const { contacts, message } = context.bindings.blobContents
     const contactCount = contacts.length
     context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${context.bindings.myBlob.length} Bytes\n - Number of contacts: ${contactCount}`)
@@ -55,8 +55,8 @@ module.exports = async function (context) {
     await Promise.all(promises)
 
     // Delete the inital contact list
-    context.log(`'${initialContactListBlobName}' initiated the function and will be deleted.`)
-    const blobClient = initialContainerClient.getBlobClient(initialContactListBlobName)
+    context.log(`'${contactListBlobName}' initiated the function and will be deleted.`)
+    const blobClient = contactListContainerClient.getBlobClient(contactListBlobName)
 
     await blobClient.delete()
   } catch (e) {
