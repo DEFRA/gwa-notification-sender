@@ -39,7 +39,7 @@ To start the function app run `func start`.
 
 ### Pre-requisites
 
-The function app uses Azure Storage, specifically blobs and queues. When
+The app uses Azure Storage, specifically blobs and queues. When
 working locally
 [Azurite](https://github.com/Azure/Azurite) can be used to emulate storage.
 Follow the
@@ -55,6 +55,24 @@ The app uses `local.settings.json` for local development.
 [example.local.settings.json](example.local.settings.json) can be used as the
 basis as it contains all required env vars with the exception of secrets which
 have been removed. The connection string for Azurite is included.
+
+## Notify Set Up
+
+The app sends message via Notify. Getting set up on Notify is straight forward,
+simply follow the
+[documentation](https://www.notifications.service.gov.uk/using-notify/get-started).
+When set up, 2 env vars need to be set:
+
+* `NOTIFY_CLIENT_API_KEY` - the API key
+* `NOTIFY_TEMPLATE_ID` - the UUID of the message template
+
+There are different types of
+[API key](https://docs.notifications.service.gov.uk/rest-api.html#api-keys).
+When running locally the API key should be of type `test`.
+
+The message template should be empty apart from the message property i.e.
+`((message))`. This allows the message to be fully controlled by the app
+sending the message.
 
 ## License
 
