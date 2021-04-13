@@ -6,7 +6,7 @@
 ## Detail
 
 The function triggers on messages in an Azure Queue Storage queue that have
-been added by [ProcessInitialContactList](../ProcessInitialContactList).
+been added by [ProcessContactList](../ProcessContactList).
 The message includes the name of a file that contains a batch of contacts.
 
 The file name is used to retrieve the contents of the file. For every contact
