@@ -1,4 +1,4 @@
-# Contact List Blob Trigger - JavaScript
+# Process Initial Contact List - JavaScript
 
 > Triggers on files in blob storage containing a list of contacts and a message
 > to send to them.

@@ -8,14 +8,14 @@
 
 The app is made up of a number of functions, working as a unit processing
 contact data into messages. The process is initiated when a file is uploaded to
-a container that the `ContactListBlobTrigger` function triggers on. Data is
+a container that the `ProcessInitialContactList` function triggers on. Data is
 then processed by `ProcessContactListBatches` before being processed by
 `MessageToSendQueueTrigger`.
 
 Each function is explained in more detail in its' own README:
 
+* [ProcessInitialContactList](ProcessInitialContactList/README.md)
 * [ProcessContactListBatches](ProcessContactListBatches/README.md)
-* [ContactListBlobTrigger](ContactListBlobTrigger/README.md)
 * [MessageToSendQueueTrigger](MessageToSendQueueTrigger/README.md)
 
 ## Function Development
