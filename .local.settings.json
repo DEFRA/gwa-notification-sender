@@ -6,6 +6,7 @@
     "CONTACT_LIST_BATCHES_CONTAINER": "contact-list-batches-local",
     "CONTACT_LIST_BATCHES_QUEUE": "contact-list-batches-local",
     "CONTACT_LIST_CONTAINER": "contact-list-local",
+    "INITIAL_MESSAGE_VISIBILITY": "1",
     "NOTIFICATIONS_TO_SEND_QUEUE": "notifications-to-send-local",
     "NOTIFICATIONS_FAILED_TO_SEND_QUEUE": "notifications-failed-to-send-local",
     "NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE": "notifications-failed-to-send-rate-limit-local",
