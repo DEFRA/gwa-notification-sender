@@ -10,7 +10,6 @@
     "NOTIFICATIONS_FAILED_TO_SEND_QUEUE": "notifications-failed-to-send-local",
     "NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE": "notifications-failed-to-send-rate-limit-local",
     "NOTIFY_CLIENT_API_KEY": "",
-    "NOTIFY_TEMPLATE_ID": "",
-    "NOTIFY_CALLBACK_BEARER_TOKEN": ""
+    "NOTIFY_TEMPLATE_ID": ""
   }
 }
