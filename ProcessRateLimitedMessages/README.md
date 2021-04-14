@@ -16,10 +16,13 @@ queue.
 
 The process of moving messages is to receive batches of messages (maximum 32),
 use them to send new messages and delete the failed to send messages.
-When messages are sent to the sending queue the `visibilityTimeout` property is
-set. For each batch of messages the timeout is incremented by 1 second. This
-effectively rate limits the messages to a maximum of 1920 (60 * 32) messages
-per minute (below the 3K per minute max rate for Notify).
+When messages are sent to the sending queue the
+[`visibilityTimeout`](https://azuresdkdocs.blob.core.windows.net/$web/javascript/azure-storage-queue/12.4.0/interfaces/queuesendmessageoptions.html#visibilitytimeout)
+property is set. For each batch of messages the timeout is incremented by 1
+second. This effectively rate limits the messages to a maximum of 1920 (60 *
+32) messages per minute (below the
+[3K per minute rate](https://docs.notifications.service.gov.uk/rest-api.html#rate-limits)
+for Notify).
 
 ## Notes
 
@@ -33,6 +36,6 @@ One consideration is the potential for this function to trigger just after a
 file has been deleted. This could mean a full batch of 2.5K messages has
 started to be processed (although if it was the last file it is very unlikely
 to be the full 2.5K). However, to accommodate for this scenario messages are
-sent to the send queue with a visibilityTimeout of a minimum of 30 seconds in
+sent to the send queue with a `visibilityTimeout` of a minimum of 30 seconds in
 the future. If rate limits were hit again then the process would begin again so
 there _shouldn't_ be a issues.

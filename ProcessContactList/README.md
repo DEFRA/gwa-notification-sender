@@ -24,7 +24,9 @@ The files are expected to have been added by a web app where the details of the
 message and contacts list is managed. However, there are no checks that this is
 the case.
 
-The format of the file is expected to be a JSON object e.g.:
+The format of the file is expected to be a JSON object with a string property
+called `message` and an array called `contacts` with an object containing a
+string property called `phoneNumber` e.g.:
 
 ```json
 {
