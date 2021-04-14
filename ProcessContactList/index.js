@@ -1,21 +1,23 @@
 const { ContainerClient } = require('@azure/storage-blob')
 const { QueueClient } = require('@azure/storage-queue')
 
+const batchesContainer = process.env.CONTACT_LIST_BATCHES_CONTAINER
 const connectionString = process.env.AzureWebJobsStorage
+const contactListContainer = process.env.CONTACT_LIST_CONTAINER
+const contactListQueue = process.env.CONTACT_LIST_BATCHES_QUEUE
 const initialVisibility = parseInt(process.env.INITIAL_MESSAGE_VISIBILITY, 10)
-const batchesQ = process.env.CONTACT_LIST_BATCHES_QUEUE
 
 // Creating clients outside of the function is best practice as per
 // https://docs.microsoft.com/en-us/azure/azure-functions/manage-connections
-const batchesContainerClient = new ContainerClient(connectionString, process.env.CONTACT_LIST_BATCHES_CONTAINER)
-const contactListContainerClient = new ContainerClient(connectionString, process.env.CONTACT_LIST_CONTAINER)
-const qClient = new QueueClient(connectionString, batchesQ)
+const batchesContainerClient = new ContainerClient(connectionString, batchesContainer)
+const batchesQueueClient = new QueueClient(connectionString, contactListQueue)
+const contactListContainerClient = new ContainerClient(connectionString, contactListContainer)
 
 async function ensureResourcesExist () {
   // Prevent erroring if container or queue doesn't exist. Ideally this would
   // be outside of the function body but no top level await
   await batchesContainerClient.createIfNotExists()
-  await qClient.createIfNotExists()
+  await batchesQueueClient.createIfNotExists()
 }
 
 function createBatches (blobContents) {
@@ -53,8 +55,8 @@ module.exports = async function (context) {
 
       // Add a message for file to process at staggered time in future
       const visibilityTimeout = 90 * i + initialVisibility
-      const buf = Buffer.from(blobName, 'utf8')
-      promises.push(qClient.sendMessage(buf.toString('base64'), { visibilityTimeout }))
+      const blobNameB64Enc = Buffer.from(blobName, 'utf8').toString('base64')
+      promises.push(batchesQueueClient.sendMessage(blobNameB64Enc, { visibilityTimeout }))
       blobs.push({
         blobName,
         visibleIn: visibilityTimeout
