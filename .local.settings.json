@@ -8,8 +8,10 @@
     "CONTACT_LIST_CONTAINER": "contact-list-local",
     "INITIAL_MESSAGE_VISIBILITY": "1",
     "NOTIFICATIONS_TO_SEND_QUEUE": "notifications-to-send-local",
+    "NOTIFICATIONS_FAILED_TO_SEND_VISIBILITY_TIMEOUT_BASE": "2",
     "NOTIFICATIONS_FAILED_TO_SEND_QUEUE": "notifications-failed-to-send-local",
     "NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE": "notifications-failed-to-send-rate-limit-local",
+    "NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE": "32",
     "NOTIFY_CLIENT_API_KEY": "",
     "NOTIFY_TEMPLATE_ID": ""
   }

@@ -12,11 +12,16 @@ a container that the `ProcessContactList` function triggers on. Data is
 then processed by `ProcessContactListBatches` before being processed by
 `SendMessage`.
 
+Ensuring messages that have failed to send due to hitting rate limits (this
+_shouldn't_ happen but needs to be accounted for) `ProcessRateLimitedMessages`
+runs on a schedule.
+
 Each function is explained in more detail in its' own README:
 
 * [ProcessContactList](ProcessContactList/README.md)
 * [ProcessContactListBatches](ProcessContactListBatches/README.md)
 * [SendMessage](SendMessage/README.md)
+* [ProcessRateLimitedMessages](ProcessRateLimitedMessages/README.md)
 
 ## Function Development
 
