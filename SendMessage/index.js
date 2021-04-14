@@ -3,6 +3,7 @@ const { v4: uuid } = require('uuid')
 
 const notifyClientApiKey = process.env.NOTIFY_CLIENT_API_KEY
 const notifyTemplateId = process.env.NOTIFY_TEMPLATE_ID
+
 const notifyClient = new NotifyClient(notifyClientApiKey)
 
 function isErrorOkToTryAgain (error) {
@@ -10,6 +11,7 @@ function isErrorOkToTryAgain (error) {
 }
 
 function isRateLimitError (error) {
+  // TODO: Might want to do something different for daily rate limits
   return error?.status_code === 429
 }
 
@@ -29,12 +31,11 @@ module.exports = async function (context) {
     context.log.error(error)
 
     if (isRateLimitError(error)) {
-      // Move to rateLimitExceeded queue.
+      // Do not rethrow, move to rateLimitExceeded queue.
       context.bindings.rateLimitExceeded = {
         error,
         notification
       }
-      // Do not rethrow - no point in retrying right now.
     } else {
       // Message will go to poision queue after dequeueCount has reached max
       // (default 5). We don't want to use poision queue - add to failed queue.

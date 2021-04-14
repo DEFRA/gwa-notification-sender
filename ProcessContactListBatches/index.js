@@ -1,10 +1,9 @@
-const { BlobServiceClient } = require('@azure/storage-blob')
-
-const connectionString = process.env.AzureWebJobsStorage
-const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
+const { ContainerClient } = require('@azure/storage-blob')
 
 const batchesContainerName = process.env.CONTACT_LIST_BATCHES_CONTAINER
-const batchesContainerClient = blobServiceClient.getContainerClient(batchesContainerName)
+const connectionString = process.env.AzureWebJobsStorage
+
+const batchesContainerClient = new ContainerClient(connectionString, batchesContainerName)
 
 async function streamToBuffer (readableStream) {
   return new Promise((resolve, reject) => {
