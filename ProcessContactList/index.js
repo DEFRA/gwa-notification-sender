@@ -40,7 +40,6 @@ module.exports = async function (context) {
     const { blobContents } = context.bindings
     context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${context.bindings.myBlob.length} Bytes`)
 
-    // Batch into smaller chunks
     const batches = createBatches(blobContents)
 
     const now = Date.now()
@@ -53,7 +52,8 @@ module.exports = async function (context) {
       const content = JSON.stringify(batches[i])
       promises.push(blockBlobClient.upload(content, content.length, { blobHTTPHeaders: { blobContentType: 'application/json' } }))
 
-      // Add a message for file to process at staggered time in future
+      // Add a message with the name of the file to process with staggered
+      // future times
       const visibilityTimeout = 90 * i + initialVisibility
       const blobNameB64Enc = Buffer.from(blobName, 'utf8').toString('base64')
       promises.push(batchesQueueClient.sendMessage(blobNameB64Enc, { visibilityTimeout }))
