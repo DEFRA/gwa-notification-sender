@@ -1,4 +1,4 @@
-const { BlobServiceClient } = require('@azure/storage-blob')
+const { ContainerClient } = require('@azure/storage-blob')
 const { QueueClient } = require('@azure/storage-queue')
 
 const connectionString = process.env.AzureWebJobsStorage
@@ -7,9 +7,8 @@ const batchesQ = process.env.CONTACT_LIST_BATCHES_QUEUE
 
 // Creating clients outside of the function is best practice as per
 // https://docs.microsoft.com/en-us/azure/azure-functions/manage-connections
-const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
-const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_BATCHES_CONTAINER)
-const contactListContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_CONTAINER)
+const batchesContainerClient = new ContainerClient(connectionString, process.env.CONTACT_LIST_BATCHES_CONTAINER)
+const contactListContainerClient = new ContainerClient(connectionString, process.env.CONTACT_LIST_CONTAINER)
 const qClient = new QueueClient(connectionString, batchesQ)
 
 async function ensureResourcesExist () {
