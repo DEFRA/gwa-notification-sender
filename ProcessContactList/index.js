@@ -3,34 +3,44 @@ const { QueueClient } = require('@azure/storage-queue')
 
 const connectionString = process.env.AzureWebJobsStorage
 const initialVisibility = parseInt(process.env.INITIAL_MESSAGE_VISIBILITY, 10)
+const batchesQ = process.env.CONTACT_LIST_BATCHES_QUEUE
 
+// Creating clients outside of the function is best practice as per
+// https://docs.microsoft.com/en-us/azure/azure-functions/manage-connections
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString)
 const batchesContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_BATCHES_CONTAINER)
-// Prevent erroring if container doesn't exist
-batchesContainerClient.createIfNotExists()
-
 const contactListContainerClient = blobServiceClient.getContainerClient(process.env.CONTACT_LIST_CONTAINER)
-
-// Client for adding messages for batch files
-const batchesQ = process.env.CONTACT_LIST_BATCHES_QUEUE
 const qClient = new QueueClient(connectionString, batchesQ)
-qClient.createIfNotExists()
+
+async function ensureResourcesExist () {
+  // Prevent erroring if container or queue doesn't exist. Ideally this would
+  // be outside of the function body but no top level await
+  await batchesContainerClient.createIfNotExists()
+  await qClient.createIfNotExists()
+}
+
+function createBatches (blobContents) {
+  const { contacts, message } = blobContents
+  const batches = []
+  while (contacts.length) {
+    batches.push({
+      contacts: contacts.splice(0, 2500),
+      message
+    })
+  }
+  return batches
+}
 
 module.exports = async function (context) {
   try {
+    await ensureResourcesExist()
+
     const { blobTrigger, contactListBlobName } = context.bindingData
-    const { contacts, message } = context.bindings.blobContents
-    const contactCount = contacts.length
-    context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${context.bindings.myBlob.length} Bytes\n - Number of contacts: ${contactCount}`)
+    const { blobContents } = context.bindings
+    context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${context.bindings.myBlob.length} Bytes`)
 
     // Batch into smaller chunks
-    const batches = []
-    while (contacts.length) {
-      batches.push({
-        contacts: contacts.splice(0, 2500),
-        message
-      })
-    }
+    const batches = createBatches(blobContents)
 
     const now = Date.now()
     const promises = []
