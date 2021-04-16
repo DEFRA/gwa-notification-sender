@@ -50,7 +50,8 @@ completed, specifically for
 
 ## Running Locally
 
-To start the function app run `func start`.
+To start the function app run `func start` or `npm run start` (which just runs
+`func start`).
 
 ### Pre-requisites
 
