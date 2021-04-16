@@ -1,11 +1,13 @@
-const sbMockUpload = jest.fn()
+const sbMockDelete = jest.fn()
+const sbMockDownload = jest.fn()
 const sbMockBlobClient = jest.fn().mockImplementation(() => {
   return {
-    delete: sbMockDelete
+    delete: sbMockDelete,
+    download: sbMockDownload
   }
 })
 
-const sbMockDelete = jest.fn()
+const sbMockUpload = jest.fn()
 const sbMockBlockBlobClient = jest.fn().mockImplementation(() => {
   return {
     upload: sbMockUpload
@@ -29,6 +31,7 @@ module.exports = {
     sbMockContainerClient,
     sbMockCreateIfNotExists,
     sbMockDelete,
+    sbMockDownload,
     sbMockUpload
   }
 }
