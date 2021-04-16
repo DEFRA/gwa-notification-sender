@@ -1,12 +1,11 @@
 const { sbMockBlobClient, sbMockBlockBlobClient, sbMockContainerClient, sbMockCreateIfNotExists, sbMockDelete, sbMockUpload } = require('@azure/storage-blob').sbMocks
 const { sqMockCreateIfNotExists, sqMockQueueClient, sqMockSendMessage } = require('@azure/storage-queue').sqMocks
+const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
+const generateContacts = require('../test/generateContacts')
 
 const processContactList = require('./index')
-const generateContacts = require('../test/generateContacts')
-const context = require('../test/defaultContext')
 
-// NOTE: Setting automock: true should mean this isn't necessary
 jest.mock('@azure/storage-blob')
 jest.mock('@azure/storage-queue')
 
