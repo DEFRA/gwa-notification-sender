@@ -3,3 +3,4 @@
 LICENCE
 README.md
 super-linter.log
+*.test.js
