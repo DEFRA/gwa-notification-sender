@@ -10,8 +10,8 @@ const initialVisibility = parseInt(process.env.INITIAL_MESSAGE_VISIBILITY, 10)
 // Creating clients outside of the function is best practice as per
 // https://docs.microsoft.com/en-us/azure/azure-functions/manage-connections
 const batchesContainerClient = new ContainerClient(connectionString, batchesContainer)
-const batchesQueueClient = new QueueClient(connectionString, contactListQueue)
 const contactListContainerClient = new ContainerClient(connectionString, contactListContainer)
+const batchesQueueClient = new QueueClient(connectionString, contactListQueue)
 
 async function ensureResourcesExist () {
   // Prevent erroring if container or queue doesn't exist. Ideally this would

@@ -49,6 +49,7 @@ module.exports = async function (context) {
 
         for (const messageItem of messageItems) {
           const { messageId, messageText, popReceipt } = messageItem
+          // TODO: check for 429 daily limit and
           const { notification } = JSON.parse(Buffer.from(messageText, 'base64').toString('utf8'))
 
           deletionPromises.push(failedToSendQueueClient.deleteMessage(messageId, popReceipt))
