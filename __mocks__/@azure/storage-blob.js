@@ -1,5 +1,14 @@
+const { Readable } = require('stream').Stream
+const rsbody = new Readable()
+rsbody.push(JSON.stringify({ contacts: [], message: 'message' }))
+rsbody.push(null)
+
 const sbMockDelete = jest.fn()
-const sbMockDownload = jest.fn()
+const sbMockDownload = jest.fn().mockImplementation(() => {
+  return {
+    readableStreamBody: rsbody
+  }
+})
 const sbMockBlobClient = jest.fn().mockImplementation(() => {
   return {
     delete: sbMockDelete,
