@@ -41,11 +41,12 @@ module.exports = async function (context) {
       // (default 5). We don't want to use poision queue - add to failed queue.
       if (dequeueCount < 5 && isErrorOkToTryAgain(error)) {
         context.log.warn('Message sending has failed but is ok to try again', notification)
-        // throw new error so the message is added back to the queue
+        // Throwing error causes the message to be added back to the queue with
+        // dequeueCount incremented (happens automatically)
         throw new Error(e)
       } else {
         context.log.warn('add to failed queue')
-        // Add to failed queue for later inspection
+        // Add to failed queue for later analysis, no auto reprocessing
         context.bindings.failed = {
           error,
           notification
