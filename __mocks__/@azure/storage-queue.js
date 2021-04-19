@@ -1,18 +1,17 @@
-const sqMockCreateIfNotExists = jest.fn()
-const sqMockSendMessage = jest.fn()
-const sqMockQueueClient = jest.fn().mockImplementation(() => {
+const mockCreateIfNotExists = jest.fn()
+const mockSendMessage = jest.fn()
+const mockQueueClient = jest.fn().mockImplementation(() => {
   return {
-    createIfNotExists: sqMockCreateIfNotExists,
-    sendMessage: sqMockSendMessage
+    createIfNotExists: mockCreateIfNotExists,
+    sendMessage: mockSendMessage
   }
 })
 
 module.exports = {
-  // TODO: rename to remove 'sq' for easier association
-  sqMocks: {
-    sqMockCreateIfNotExists,
-    sqMockQueueClient,
-    sqMockSendMessage
+  mocks: {
+    mockCreateIfNotExists,
+    mockQueueClient,
+    mockSendMessage
   },
-  QueueClient: sqMockQueueClient
+  QueueClient: mockQueueClient
 }
