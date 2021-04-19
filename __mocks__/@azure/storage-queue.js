@@ -1,6 +1,6 @@
 const mockCreateIfNotExists = jest.fn()
 const mockSendMessage = jest.fn()
-const mockQueueClient = jest.fn().mockImplementation(() => {
+const mockQueueClient = jest.fn(() => {
   return {
     createIfNotExists: mockCreateIfNotExists,
     sendMessage: mockSendMessage

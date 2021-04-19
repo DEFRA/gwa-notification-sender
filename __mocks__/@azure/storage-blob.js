@@ -4,11 +4,8 @@ function setMockDownloads (contents) {
 
 const mockDownloads = []
 const mockDelete = jest.fn()
-const mockDownload = jest.fn()
-  .mockImplementation(() => {
-    return { readableStreamBody: mockDownloads.shift() }
-  })
-const mockBlobClient = jest.fn().mockImplementation(() => {
+const mockDownload = jest.fn(() => { return { readableStreamBody: mockDownloads.shift() } })
+const mockBlobClient = jest.fn(() => {
   return {
     delete: mockDelete,
     download: mockDownload
@@ -16,12 +13,12 @@ const mockBlobClient = jest.fn().mockImplementation(() => {
 })
 
 const mockUpload = jest.fn()
-const mockBlockBlobClient = jest.fn().mockImplementation(() => {
+const mockBlockBlobClient = jest.fn(() => {
   return { upload: mockUpload }
 })
 
 const mockCreateIfNotExists = jest.fn()
-const mockContainerClient = jest.fn().mockImplementation(() => {
+const mockContainerClient = jest.fn(() => {
   return {
     createIfNotExists: mockCreateIfNotExists,
     getBlobClient: mockBlobClient,
