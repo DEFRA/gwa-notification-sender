@@ -1,15 +1,5 @@
-const { Readable } = require('stream').Stream
-
-function setMockDownload (contents) {
-  const mockReadable = new Readable({ read () {} })
-  mockReadable.push(JSON.stringify(contents))
-  mockReadable.push(null)
-  mockDownloads.push(mockReadable)
-}
-
-const mockDownloads = []
 const mockDelete = jest.fn()
-const mockDownload = jest.fn(() => { return { readableStreamBody: mockDownloads.shift() } })
+const mockDownload = jest.fn()
 const mockBlobClient = jest.fn(() => {
   return {
     delete: mockDelete,
@@ -41,6 +31,5 @@ module.exports = {
     mockDelete,
     mockDownload,
     mockUpload
-  },
-  setMockDownload
+  }
 }

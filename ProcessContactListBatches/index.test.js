@@ -1,4 +1,5 @@
-const { setMockDownload } = require('@azure/storage-blob')
+const { Readable } = require('stream').Stream
+
 const { mockBlobClient, mockContainerClient, mockDelete, mockDownload } = require('@azure/storage-blob').mocks
 
 const context = require('../test/defaultContext')
@@ -15,6 +16,13 @@ function testSentMessages (fileContents, sentMessages) {
     expect(sentMessage.message).toEqual(message)
     expect(sentMessage.phoneNumber).toEqual(contacts[idx].phoneNumber)
   })
+}
+
+function setMockDownload (contents) {
+  const mockReadable = new Readable({ read () {} })
+  mockReadable.push(JSON.stringify(contents))
+  mockReadable.push(null)
+  mockDownload.mockImplementation(() => { return { readableStreamBody: mockReadable } })
 }
 
 describe('ProcessContactListBatches function', () => {
