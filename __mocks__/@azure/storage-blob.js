@@ -1,6 +1,6 @@
 const { Readable } = require('stream').Stream
 
-function setMockDownloads (contents) {
+function setMockDownload (contents) {
   const mockReadable = new Readable({ read () {} })
   mockReadable.push(JSON.stringify(contents))
   mockReadable.push(null)
@@ -43,5 +43,5 @@ module.exports = {
     mockDownload,
     mockUpload
   },
-  setMockDownloads
+  setMockDownload
 }

@@ -1,4 +1,4 @@
-const { setMockDownloads } = require('@azure/storage-blob')
+const { setMockDownload } = require('@azure/storage-blob')
 const { mockBlobClient, mockContainerClient, mockDelete, mockDownload } = require('@azure/storage-blob').mocks
 
 jest.mock('@azure/storage-blob')
@@ -31,7 +31,7 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('file specified in message is downloaded', async () => {
-    setMockDownloads({ contacts: [], message: 'messages' })
+    setMockDownload({ contacts: [], message: 'messages' })
 
     await processContactListBatches(context)
 
@@ -43,7 +43,7 @@ describe('ProcessContactListBatches function', () => {
   test('a message is sent for a single contact in the batch', async () => {
     const phoneNumber = '07000111222'
     const message = 'message to send to a batch of contacts'
-    setMockDownloads({ contacts: [{ phoneNumber }], message })
+    setMockDownload({ contacts: [{ phoneNumber }], message })
 
     await processContactListBatches(context)
 
@@ -59,7 +59,7 @@ describe('ProcessContactListBatches function', () => {
     const contacts = generateContacts(numberOfContacts)
     const message = 'message to send to a batch of contacts'
     const rawFileContents = { contacts, message }
-    setMockDownloads(rawFileContents)
+    setMockDownload(rawFileContents)
 
     await processContactListBatches(context)
 
@@ -71,7 +71,7 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('batch contact list blob is deleted', async () => {
-    setMockDownloads({ contacts: [], message: 'messages' })
+    setMockDownload({ contacts: [], message: 'messages' })
 
     await processContactListBatches(context)
 
