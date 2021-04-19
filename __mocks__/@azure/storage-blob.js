@@ -33,7 +33,6 @@ const mockContainerClient = jest.fn(() => {
 
 module.exports = {
   ContainerClient: mockContainerClient,
-  // TODO: rename to remove 'sb' for easier association
   mocks: {
     mockBlobClient,
     mockBlockBlobClient,
