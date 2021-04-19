@@ -10,8 +10,7 @@ function isErrorOkToTryAgain (error) {
   return ['EAI_AGAIN', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT'].includes(error?.code) || [403].includes(error?.status_code)
 }
 
-function isRateLimitError (error) {
-  // TODO: Might want to do something different for daily rate limits
+function isRateLimitExceeded (error) {
   return error?.status_code === 429
 }
 
@@ -30,7 +29,7 @@ module.exports = async function (context) {
     const error = e?.response?.data ?? e
     context.log.error(error)
 
-    if (isRateLimitError(error)) {
+    if (isRateLimitExceeded(error)) {
       // Do not rethrow, move to rateLimitExceeded queue.
       context.bindings.rateLimitExceeded = {
         error,
