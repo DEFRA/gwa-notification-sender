@@ -1,5 +1,10 @@
+const { Readable } = require('stream').Stream
+
 function setMockDownloads (contents) {
-  mockDownloads.push(contents)
+  const mockReadable = new Readable({ read () {} })
+  mockReadable.push(JSON.stringify(contents))
+  mockReadable.push(null)
+  mockDownloads.push(mockReadable)
 }
 
 const mockDownloads = []
