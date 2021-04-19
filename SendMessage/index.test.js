@@ -51,10 +51,15 @@ describe('SendMessage function', () => {
     expect(context.log.error).toHaveBeenCalled()
   })
 
-  test('non-rate limited failed notifications deemed ok to try again with a dequeueCount < 5 throw an error', async () => {
-    mockSendSms.mockRejectedValueOnce({ response: { data: { errors, status_code: 403 } } })
-
+  test.each([
+    [{ response: { data: { errors, status_code: 403 } } }],
+    [{ message, code: 'EAI_AGAIN' }],
+    [{ message, code: 'ECONNRESET' }],
+    [{ message, code: 'ENOTFOUND' }],
+    [{ message, code: 'ETIMEDOUT' }]
+  ])('test case %#, non-rate limited failed notifications deemed ok to try again with a dequeueCount < 5 throw an error, input - %o', async (error) => {
     context.bindingData.dequeueCount = 4
+    mockSendSms.mockRejectedValue(error)
 
     await expect(sendMessage(context)).rejects.toThrow(Error)
 
@@ -64,9 +69,8 @@ describe('SendMessage function', () => {
 
   test('non-rate limited failed notifications with a dequeueCount of 5 are added to failed output binding', async () => {
     const errorStatusCode = 500
-    // mockSendSms.mockRejectedValueOnce({ response: { message: 'error message', code: 'ENOTFOUND' } })
-    mockSendSms.mockRejectedValueOnce({ response: { data: { errors, status_code: errorStatusCode } } })
     context.bindingData.dequeueCount = 5
+    mockSendSms.mockRejectedValueOnce({ response: { data: { errors, status_code: errorStatusCode } } })
 
     await sendMessage(context)
 
