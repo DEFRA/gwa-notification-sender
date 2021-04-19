@@ -1,8 +1,6 @@
 const { setMockDownload } = require('@azure/storage-blob')
 const { mockBlobClient, mockContainerClient, mockDelete, mockDownload } = require('@azure/storage-blob').mocks
 
-jest.mock('@azure/storage-blob')
-
 const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
