@@ -12,12 +12,23 @@ const mockBlockBlobClient = jest.fn(() => {
   return { upload: mockUpload }
 })
 
+const mockListBlobsFlat = jest.fn(() => {
+  return {
+    next: () => {
+      return {
+        done: false,
+        value: 'something'
+      }
+    }
+  }
+})
 const mockCreateIfNotExists = jest.fn()
 const mockContainerClient = jest.fn(() => {
   return {
     createIfNotExists: mockCreateIfNotExists,
     getBlobClient: mockBlobClient,
-    getBlockBlobClient: mockBlockBlobClient
+    getBlockBlobClient: mockBlockBlobClient,
+    listBlobsFlat: mockListBlobsFlat
   }
 })
 
@@ -30,6 +41,7 @@ module.exports = {
     mockCreateIfNotExists,
     mockDelete,
     mockDownload,
+    mockListBlobsFlat,
     mockUpload
   }
 }
