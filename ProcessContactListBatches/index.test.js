@@ -1,14 +1,15 @@
 const { Readable } = require('stream').Stream
 
 const { setMockDownloads } = require('@azure/storage-blob')
-const { sbMockBlobClient, sbMockContainerClient, sbMockDelete, sbMockDownload } = require('@azure/storage-blob').sbMocks
+const { mockBlobClient: sbMockBlobClient, mockContainerClient: sbMockContainerClient, mockDelete: sbMockDelete, mockDownload: sbMockDownload } = require('@azure/storage-blob').mocks
+
+jest.mock('@azure/storage-blob')
+
 const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactListBatches = require('./index')
-
-jest.mock('@azure/storage-blob')
 
 const contactListBatchFileName = 'contactListBatchFileName'
 

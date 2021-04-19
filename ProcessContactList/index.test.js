@@ -1,13 +1,14 @@
-const { sbMockBlobClient, sbMockBlockBlobClient, sbMockContainerClient, sbMockCreateIfNotExists, sbMockDelete, sbMockUpload } = require('@azure/storage-blob').sbMocks
-const { sqMockCreateIfNotExists, sqMockQueueClient, sqMockSendMessage } = require('@azure/storage-queue').sqMocks
+const { mockBlobClient: sbMockBlobClient, mockBlockBlobClient: sbMockBlockBlobClient, mockContainerClient: sbMockContainerClient, mockCreateIfNotExists: sbMockCreateIfNotExists, mockDelete: sbMockDelete, mockUpload: sbMockUpload } = require('@azure/storage-blob').mocks
+const { mockCreateIfNotExists: sqMockCreateIfNotExists, mockQueueClient: sqMockQueueClient, mockSendMessage: sqMockSendMessage } = require('@azure/storage-queue').mocks
+
+jest.mock('@azure/storage-blob')
+jest.mock('@azure/storage-queue')
+
 const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactList = require('./index')
-
-jest.mock('@azure/storage-blob')
-jest.mock('@azure/storage-queue')
 
 const message = 'message to send'
 const blobContents = {

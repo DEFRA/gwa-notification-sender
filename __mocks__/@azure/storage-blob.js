@@ -3,44 +3,43 @@ function setMockDownloads (contents) {
 }
 
 const mockDownloads = []
-const sbMockDelete = jest.fn()
-const sbMockDownload = jest.fn()
+const mockDelete = jest.fn()
+const mockDownload = jest.fn()
   .mockImplementation(() => {
     return { readableStreamBody: mockDownloads.shift() }
   })
-const sbMockBlobClient = jest.fn().mockImplementation(() => {
+const mockBlobClient = jest.fn().mockImplementation(() => {
   return {
-    delete: sbMockDelete,
-    download: sbMockDownload
+    delete: mockDelete,
+    download: mockDownload
   }
 })
 
-const sbMockUpload = jest.fn()
-const sbMockBlockBlobClient = jest.fn().mockImplementation(() => {
-  return { upload: sbMockUpload }
+const mockUpload = jest.fn()
+const mockBlockBlobClient = jest.fn().mockImplementation(() => {
+  return { upload: mockUpload }
 })
 
-const sbMockCreateIfNotExists = jest.fn()
-const sbMockContainerClient = jest.fn().mockImplementation(() => {
+const mockCreateIfNotExists = jest.fn()
+const mockContainerClient = jest.fn().mockImplementation(() => {
   return {
-    createIfNotExists: sbMockCreateIfNotExists,
-    getBlobClient: sbMockBlobClient,
-    getBlockBlobClient: sbMockBlockBlobClient
+    createIfNotExists: mockCreateIfNotExists,
+    getBlobClient: mockBlobClient,
+    getBlockBlobClient: mockBlockBlobClient
   }
 })
 
 module.exports = {
-  ContainerClient: sbMockContainerClient,
+  ContainerClient: mockContainerClient,
   // TODO: rename to remove 'sb' for easier association
-  sbMocks: {
-    sbMockBlobClient,
-    sbMockBlockBlobClient,
-    sbMockContainerClient,
-    sbMockCreateIfNotExists,
-    sbMockDelete,
-    sbMockDownload,
-    sbMockUpload,
-    mockDownloads
+  mocks: {
+    mockBlobClient,
+    mockBlockBlobClient,
+    mockContainerClient,
+    mockCreateIfNotExists,
+    mockDelete,
+    mockDownload,
+    mockUpload
   },
   setMockDownloads
 }
