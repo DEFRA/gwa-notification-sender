@@ -115,7 +115,7 @@ describe('ProcessContactList function', () => {
   })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
-    // Doesn't matter what errors, just that an error is thrown
+    // Doesn't matter what causes the error, just that an error is thrown
     context.bindings = null
 
     await expect(processContactList(context)).rejects.toThrow(Error)

@@ -8,6 +8,7 @@ const sqMockQueueClient = jest.fn().mockImplementation(() => {
 })
 
 module.exports = {
+  // TODO: rename to remove 'sq' for easier association
   sqMocks: {
     sqMockCreateIfNotExists,
     sqMockQueueClient,

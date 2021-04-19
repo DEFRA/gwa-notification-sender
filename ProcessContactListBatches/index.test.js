@@ -1,12 +1,24 @@
+const { Readable } = require('stream').Stream
+
+const { setMockDownloads } = require('@azure/storage-blob')
 const { sbMockBlobClient, sbMockContainerClient, sbMockDelete, sbMockDownload } = require('@azure/storage-blob').sbMocks
 const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
+const generateContacts = require('../test/generateContacts')
 
 const processContactListBatches = require('./index')
 
 jest.mock('@azure/storage-blob')
 
 const contactListBatchFileName = 'contactListBatchFileName'
+
+function testSentMessages (fileContents, sentMessages) {
+  const { contacts, message } = fileContents
+  sentMessages.forEach((sentMessage, idx) => {
+    expect(sentMessage.message).toEqual(message)
+    expect(sentMessage.phoneNumber).toEqual(contacts[idx].phoneNumber)
+  })
+}
 
 describe('ProcessContactListBatches function', () => {
   beforeAll(() => {
@@ -19,32 +31,71 @@ describe('ProcessContactListBatches function', () => {
     jest.clearAllMocks()
   })
 
-  test('file from message is downloaded', async () => {
+  function mockZeroContactDownload () {
+    const mockZeroContactDownload = new Readable({ read () {} })
+    mockZeroContactDownload.push(JSON.stringify({ contacts: [], message: 'messages' }))
+    mockZeroContactDownload.push(null)
+    setMockDownloads(mockZeroContactDownload)
+  }
+
+  test('file specified in message is downloaded', async () => {
+    mockZeroContactDownload()
+
     await processContactListBatches(context)
 
     expect(sbMockContainerClient).toHaveBeenCalledTimes(1)
     expect(sbMockContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
-    // TODO: return an empty file from this
     expect(sbMockDownload).toHaveBeenCalledTimes(1)
   })
 
-  // test('a message is sent for every contact in the batch', async () => {
-  //   await processContactListBatches(context)
-  //   expect(context.bindings).toHaveProperty('messagesToSend')
-  //   // TODO: Need to mock the ressponse of the file download for this to work
-  //   expect(context.bindings.messagesToSend).toHaveLength(99)
-  // })
+  test('a message is sent for a single contact in the batch', async () => {
+    const phoneNumber = '07000111222'
+    const message = 'message to send to a batch of contacts'
+    const mockSingleContactDownload = new Readable({ read () {} })
+    mockSingleContactDownload.push(JSON.stringify({ contacts: [{ phoneNumber }], message }))
+    mockSingleContactDownload.push(null)
+    setMockDownloads(mockSingleContactDownload)
 
-  // test('batch contact list blob is deleted', async () => {
-  //   await processContactListBatches(context)
+    await processContactListBatches(context)
 
-  //   expect(sbMockBlobClient).toHaveBeenCalledTimes(1)
-  //   expect(sbMockBlobClient).toHaveBeenCalledWith(contactListBatchFileName)
-  //   expect(sbMockDelete).toHaveBeenCalledTimes(1)
-  // })
+    expect(context.bindings).toHaveProperty('messagesToSend')
+    expect(context.bindings.messagesToSend).toHaveLength(1)
+    const messageSent = context.bindings.messagesToSend[0]
+    expect(messageSent.message).toEqual(message)
+    expect(messageSent.phoneNumber).toEqual(phoneNumber)
+  })
+
+  test('a message is sent for several contacts in the batch', async () => {
+    const numberOfContacts = 10
+    const contacts = generateContacts(numberOfContacts)
+    const message = 'message to send to a batch of contacts'
+    const mockSingleContactDownload = new Readable({ read () {} })
+    const rawFileContents = { contacts, message }
+    mockSingleContactDownload.push(JSON.stringify(rawFileContents))
+    mockSingleContactDownload.push(null)
+    setMockDownloads(mockSingleContactDownload)
+
+    await processContactListBatches(context)
+
+    expect(context.bindings).toHaveProperty('messagesToSend')
+    const sentMessages = context.bindings.messagesToSend
+    expect(sentMessages).toHaveLength(numberOfContacts)
+
+    testSentMessages(rawFileContents, sentMessages)
+  })
+
+  test('batch contact list blob is deleted', async () => {
+    mockZeroContactDownload()
+
+    await processContactListBatches(context)
+
+    expect(sbMockBlobClient).toHaveBeenCalledTimes(1)
+    expect(sbMockBlobClient).toHaveBeenCalledWith(contactListBatchFileName)
+    expect(sbMockDelete).toHaveBeenCalledTimes(1)
+  })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
-    // Doesn't matter what errors, just that an error is thrown
+    // Doesn't matter what causes the error, just that an error is thrown
     context.bindings = null
 
     await expect(processContactListBatches(context)).rejects.toThrow(Error)

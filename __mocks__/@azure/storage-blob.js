@@ -1,14 +1,13 @@
-const { Readable } = require('stream').Stream
-const rsbody = new Readable()
-rsbody.push(JSON.stringify({ contacts: [], message: 'message' }))
-rsbody.push(null)
+function setMockDownloads (contents) {
+  mockDownloads.push(contents)
+}
 
+const mockDownloads = []
 const sbMockDelete = jest.fn()
-const sbMockDownload = jest.fn().mockImplementation(() => {
-  return {
-    readableStreamBody: rsbody
-  }
-})
+const sbMockDownload = jest.fn()
+  .mockImplementation(() => {
+    return { readableStreamBody: mockDownloads.shift() }
+  })
 const sbMockBlobClient = jest.fn().mockImplementation(() => {
   return {
     delete: sbMockDelete,
@@ -18,9 +17,7 @@ const sbMockBlobClient = jest.fn().mockImplementation(() => {
 
 const sbMockUpload = jest.fn()
 const sbMockBlockBlobClient = jest.fn().mockImplementation(() => {
-  return {
-    upload: sbMockUpload
-  }
+  return { upload: sbMockUpload }
 })
 
 const sbMockCreateIfNotExists = jest.fn()
@@ -34,6 +31,7 @@ const sbMockContainerClient = jest.fn().mockImplementation(() => {
 
 module.exports = {
   ContainerClient: sbMockContainerClient,
+  // TODO: rename to remove 'sb' for easier association
   sbMocks: {
     sbMockBlobClient,
     sbMockBlockBlobClient,
@@ -41,6 +39,8 @@ module.exports = {
     sbMockCreateIfNotExists,
     sbMockDelete,
     sbMockDownload,
-    sbMockUpload
-  }
+    sbMockUpload,
+    mockDownloads
+  },
+  setMockDownloads
 }
