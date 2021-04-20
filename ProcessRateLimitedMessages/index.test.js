@@ -7,14 +7,15 @@ const generateMessageItems = require('../test/generateMessageItems')
 
 const processRateLimitedMessages = require('./index')
 
+function mockBatchProcessingComplete (done) {
+  sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done, value: undefined } } } })
+}
+
 describe('ProcessRateLimitedMessages function', () => {
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+  afterEach(() => { jest.clearAllMocks() })
 
   test('clients are created with correct env vars', async () => {
-    // TODO: look to refactor this out
-    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: false, value: undefined } } } })
+    mockBatchProcessingComplete(false)
 
     await processRateLimitedMessages(context)
 
@@ -26,7 +27,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are not sent when batches still exist', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: false, value: undefined } } } })
+    mockBatchProcessingComplete(false)
 
     await processRateLimitedMessages(context)
 
@@ -35,7 +36,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are processed (originals deleted and new ones sent) when no processing batches exist for a single message', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
+    mockBatchProcessingComplete(true)
     const numberOfMessageItems = 1
     const receivedMessageItems = generateMessageItems(numberOfMessageItems)
     sqMockReceiveMessages.mockImplementationOnce(() => { return { receivedMessageItems } })
@@ -55,7 +56,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are processed (originals deleted and new ones sent) when no processing batches exist for more than a batch of messages', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
+    mockBatchProcessingComplete(true)
     const messageReceiveBatchSize = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE
     const numberOfBatches = 2
     const numberOfMessageItems = messageReceiveBatchSize + 1
@@ -82,7 +83,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages exceeding daily limits have visibilityTimeout set to 01:00 next day', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
+    mockBatchProcessingComplete(true)
     const numberOfMessageItems = 1
     const dailyLimitExceededError = { error: 'TooManyRequestsError', message: 'not used' }
     const receivedMessageItems = generateMessageItems(numberOfMessageItems, dailyLimitExceededError)
