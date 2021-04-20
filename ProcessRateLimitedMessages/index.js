@@ -22,6 +22,14 @@ async function isBatchProcessingComplete () {
   return blobItem.done
 }
 
+function getVisibilityTimeoutForTomorrow () {
+  const now = Date.now()
+  const tomorrow = new Date(now)
+  tomorrow.setHours(1, 0, 0, 0)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  return Math.ceil((tomorrow - now) / 1000)
+}
+
 module.exports = async function (context) {
   try {
     await ensureResourcesExist()
@@ -49,13 +57,18 @@ module.exports = async function (context) {
 
         for (const messageItem of messageItems) {
           const { messageId, messageText, popReceipt } = messageItem
-          // TODO: check for 429 daily limit contained in 'error' property
-          const { notification } = JSON.parse(Buffer.from(messageText, 'base64').toString('utf8'))
-
-          deletionPromises.push(failedToSendQueueClient.deleteMessage(messageId, popReceipt))
+          const { error, notification } = JSON.parse(Buffer.from(messageText, 'base64').toString('utf8'))
 
           const notificationB64Enc = Buffer.from(JSON.stringify(notification), 'utf8').toString('base64')
-          sendPromises.push(toSendQueueClient.sendMessage(notificationB64Enc, { visibilityTimeout }))
+
+          if (error?.errors[0]?.error === 'TooManyRequestsError') {
+            const visibilityTimeoutForTomorrow = visibilityTimeout + getVisibilityTimeoutForTomorrow()
+            sendPromises.push(toSendQueueClient.sendMessage(notificationB64Enc, { visibilityTimeout: visibilityTimeoutForTomorrow }))
+          } else {
+            sendPromises.push(toSendQueueClient.sendMessage(notificationB64Enc, { visibilityTimeout }))
+          }
+
+          deletionPromises.push(failedToSendQueueClient.deleteMessage(messageId, popReceipt))
         }
       } else {
         context.log(`No more messages to move from '${failedToSendQueue}'.`)
