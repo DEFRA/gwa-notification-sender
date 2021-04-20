@@ -1,10 +1,7 @@
 const mockDelete = jest.fn()
 const mockDownload = jest.fn()
 const mockBlobClient = jest.fn(() => {
-  return {
-    delete: mockDelete,
-    download: mockDownload
-  }
+  return { delete: mockDelete, download: mockDownload }
 })
 
 const mockUpload = jest.fn()
@@ -13,14 +10,7 @@ const mockBlockBlobClient = jest.fn(() => {
 })
 
 const mockListBlobsFlat = jest.fn(() => {
-  return {
-    next: () => {
-      return {
-        done: false,
-        value: 'something'
-      }
-    }
-  }
+  return { next: () => { return { done: true, value: undefined } } }
 })
 const mockCreateIfNotExists = jest.fn()
 const mockContainerClient = jest.fn(() => {
