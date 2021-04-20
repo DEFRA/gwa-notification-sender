@@ -2,7 +2,8 @@
 
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)\
-[![Build and Deploy Production](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-production.yml/badge.svg)](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-production.yml)\
+[![Build and Deploy Production](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-production.yml/badge.svg)](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-production.yml)
+[![Build and Deploy Staging](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-staging.yml/badge.svg)](https://github.com/DEFRA/gwa-notification-sender/actions/workflows/build-and-deploy-staging.yml)\
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_gwa-notification-sender&metric=coverage)](https://sonarcloud.io/dashboard?id=DEFRA_gwa-notification-sender)
 [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_gwa-notification-sender&metric=sqale_index)](https://sonarcloud.io/dashboard?id=DEFRA_gwa-notification-sender)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=DEFRA_gwa-notification-sender&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=DEFRA_gwa-notification-sender)\
