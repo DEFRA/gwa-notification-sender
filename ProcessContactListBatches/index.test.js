@@ -26,15 +26,9 @@ function setMockDownload (contents) {
 }
 
 describe('ProcessContactListBatches function', () => {
-  beforeAll(() => {
-    context.bindings = {
-      contactListBatchFileName
-    }
-  })
+  beforeAll(() => { context.bindings = { contactListBatchFileName } })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+  afterEach(() => { jest.clearAllMocks() })
 
   test('file specified in message is downloaded', async () => {
     setMockDownload({ contacts: [], message: 'messages' })

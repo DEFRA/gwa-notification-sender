@@ -14,9 +14,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
   test('clients are created with correct env vars', async () => {
     // TODO: look to refactor this out
-    sbMockListBlobsFlat.mockImplementation(() => {
-      return { next: () => { return { done: false, value: undefined } } }
-    })
+    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: false, value: undefined } } } })
 
     await processRateLimitedMessages(context)
 
@@ -28,9 +26,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are not sent when batches still exist', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => {
-      return { next: () => { return { done: false, value: undefined } } }
-    })
+    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: false, value: undefined } } } })
 
     await processRateLimitedMessages(context)
 
@@ -39,17 +35,11 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are processed (originals deleted and new ones sent) when no processing batches exist for a single message', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => {
-      return { next: () => { return { done: true, value: undefined } } }
-    })
+    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
     const numberOfMessageItems = 1
     const receivedMessageItems = generateMessageItems(numberOfMessageItems)
-    sqMockReceiveMessages.mockImplementationOnce(() => {
-      return { receivedMessageItems }
-    })
-    sqMockReceiveMessages.mockImplementationOnce(() => {
-      return { receivedMessageItems: [] }
-    })
+    sqMockReceiveMessages.mockImplementationOnce(() => { return { receivedMessageItems } })
+    sqMockReceiveMessages.mockImplementationOnce(() => { return { receivedMessageItems: [] } })
 
     await processRateLimitedMessages(context)
 
