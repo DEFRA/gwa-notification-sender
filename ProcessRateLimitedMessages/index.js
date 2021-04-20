@@ -27,7 +27,7 @@ function getVisibilityTimeoutForTomorrow () {
   const tomorrow = new Date(now)
   tomorrow.setHours(1, 0, 0, 0)
   tomorrow.setDate(tomorrow.getDate() + 1)
-  return Math.ceil((tomorrow - now) / 1000)
+  return Math.ceil((tomorrow.getTime() - now.getTime()) / 1000)
 }
 
 module.exports = async function (context) {
