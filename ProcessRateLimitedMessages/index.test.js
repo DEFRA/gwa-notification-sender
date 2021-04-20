@@ -55,9 +55,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('messages are processed (originals deleted and new ones sent) when no processing batches exist for more than a batch of messages', async () => {
-    sbMockListBlobsFlat.mockImplementation(() => {
-      return { next: () => { return { done: true, value: undefined } } }
-    })
+    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
     const messageReceiveBatchSize = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE
     const numberOfBatches = 2
     const numberOfMessageItems = messageReceiveBatchSize + 1
@@ -81,6 +79,31 @@ describe('ProcessRateLimitedMessages function', () => {
       expect(sqMockDeleteMessage).toHaveBeenNthCalledWith(i + 1, receivedMessageItems[i].messageId, receivedMessageItems[i].popReceipt)
       expect(sqMockSendMessage).toHaveBeenNthCalledWith(i + 1, base64EncodedNotification, { visibilityTimeout })
     }
+  })
+
+  test('messages exceeding daily limits have visibilityTimeout set to 01:00 next day', async () => {
+    sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done: true, value: undefined } } } })
+    const numberOfMessageItems = 1
+    const dailyLimitExceededError = { error: 'TooManyRequestsError', message: 'not used' }
+    const receivedMessageItems = generateMessageItems(numberOfMessageItems, dailyLimitExceededError)
+    sqMockReceiveMessages.mockImplementationOnce(() => { return { receivedMessageItems } })
+    sqMockReceiveMessages.mockImplementationOnce(() => { return { receivedMessageItems: [] } })
+    const knownDateTime = new Date(2020, 1, 2, 11, 59, 30, 456)
+    const tomorrowDateTime = new Date(2020, 1, 3, 1)
+    const visibilityTimeoutForTomorrow = Math.ceil((tomorrowDateTime - knownDateTime) / 1000)
+    Date.now = jest.fn(() => knownDateTime)
+
+    await processRateLimitedMessages(context)
+
+    const messageItem = receivedMessageItems[0]
+    expect(sqMockReceiveMessages).toHaveBeenCalledTimes(2)
+    expect(sqMockReceiveMessages).toHaveBeenCalledWith({ numberOfMessages: testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE })
+    expect(sqMockDeleteMessage).toHaveBeenCalledTimes(numberOfMessageItems)
+    expect(sqMockDeleteMessage).toHaveBeenCalledWith(messageItem.messageId, messageItem.popReceipt)
+    expect(sqMockSendMessage).toHaveBeenCalledTimes(numberOfMessageItems)
+    const base64EncodedNotification = Buffer.from(JSON.stringify(JSON.parse(Buffer.from(messageItem.messageText, 'base64').toString('utf8')).notification), 'utf8').toString('base64')
+    const visibilityTimeout = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_VISIBILITY_TIMEOUT_BASE + 1 + visibilityTimeoutForTomorrow
+    expect(sqMockSendMessage).toHaveBeenCalledWith(base64EncodedNotification, { visibilityTimeout })
   })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
