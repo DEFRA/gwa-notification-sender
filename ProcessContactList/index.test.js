@@ -8,28 +8,17 @@ const generateContacts = require('../test/generateContacts')
 const processContactList = require('./index')
 
 const message = 'message to send'
-const blobContents = {
-  contacts: [],
-  message
-}
+const blobContents = { contacts: [], message }
 
 describe('ProcessContactList function', () => {
   beforeAll(() => {
-    context.bindingData = {
-      blobTrigger: '',
-      contactListBlobName: ''
-    }
+    context.bindingData = { blobTrigger: '', contactListBlobName: '' }
     context.bindings = {
-      blobContents,
-      myBlob: {
-        length: JSON.stringify(blobContents).length
-      }
+      blobContents, myBlob: { length: JSON.stringify(blobContents).length }
     }
   })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+  afterEach(() => { jest.clearAllMocks() })
 
   test('clients are created with correct env vars', async () => {
     await processContactList(context)

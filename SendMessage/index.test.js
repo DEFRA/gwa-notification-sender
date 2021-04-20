@@ -17,9 +17,7 @@ describe('SendMessage function', () => {
     context.bindings = { notification }
   })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
+  afterEach(() => { jest.clearAllMocks() })
 
   test('message is sent to Notify with correct details', async () => {
     mockSendSms.mockResolvedValueOnce()
