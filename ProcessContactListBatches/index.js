@@ -8,7 +8,7 @@ const batchesContainerClient = new ContainerClient(connectionString, batchesCont
 async function streamToBuffer (readableStream) {
   return new Promise((resolve, reject) => {
     const chunks = []
-    readableStream.on('data', (data) => {
+    readableStream.on('data', data => {
       chunks.push(data instanceof Buffer ? data : Buffer.from(data))
     })
     readableStream.on('end', () => {

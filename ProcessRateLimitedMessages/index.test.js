@@ -11,6 +11,20 @@ function mockBatchProcessingComplete (done) {
   sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done, value: undefined } } } })
 }
 
+// messageText must be a base64 encoded string that is an object containing
+// a 'notification' property
+function base64EncodeNotification (messageText) {
+  return Buffer.from(JSON.stringify(JSON.parse(Buffer.from(messageText, 'base64').toString('utf8')).notification), 'utf8').toString('base64')
+}
+
+function expectSingleProcessedBatchIsCorrect (messageItem, numberOfMessageItems) {
+  expect(sqMockReceiveMessages).toHaveBeenCalledTimes(2)
+  expect(sqMockReceiveMessages).toHaveBeenCalledWith({ numberOfMessages: testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE })
+  expect(sqMockDeleteMessage).toHaveBeenCalledTimes(numberOfMessageItems)
+  expect(sqMockDeleteMessage).toHaveBeenCalledWith(messageItem.messageId, messageItem.popReceipt)
+  expect(sqMockSendMessage).toHaveBeenCalledTimes(numberOfMessageItems)
+}
+
 describe('ProcessRateLimitedMessages function', () => {
   afterEach(() => { jest.clearAllMocks() })
 
@@ -45,14 +59,11 @@ describe('ProcessRateLimitedMessages function', () => {
     await processRateLimitedMessages(context)
 
     const messageItem = receivedMessageItems[0]
-    expect(sqMockReceiveMessages).toHaveBeenCalledTimes(2)
-    expect(sqMockReceiveMessages).toHaveBeenCalledWith({ numberOfMessages: testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE })
-    expect(sqMockDeleteMessage).toHaveBeenCalledTimes(numberOfMessageItems)
-    expect(sqMockDeleteMessage).toHaveBeenCalledWith(messageItem.messageId, messageItem.popReceipt)
-    expect(sqMockSendMessage).toHaveBeenCalledTimes(numberOfMessageItems)
-    const base64EncodedNotification = Buffer.from(JSON.stringify(JSON.parse(Buffer.from(messageItem.messageText, 'base64').toString('utf8')).notification), 'utf8').toString('base64')
+    expectSingleProcessedBatchIsCorrect(messageItem, numberOfMessageItems)
+
+    const b64EncNotification = base64EncodeNotification(messageItem.messageText)
     const visibilityTimeout = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_VISIBILITY_TIMEOUT_BASE + 1
-    expect(sqMockSendMessage).toHaveBeenCalledWith(base64EncodedNotification, { visibilityTimeout })
+    expect(sqMockSendMessage).toHaveBeenCalledWith(b64EncNotification, { visibilityTimeout })
   })
 
   test('messages are processed (originals deleted and new ones sent) when no processing batches exist for more than a batch of messages', async () => {
@@ -75,10 +86,10 @@ describe('ProcessRateLimitedMessages function', () => {
     expect(sqMockDeleteMessage).toHaveBeenCalledWith(messageItem.messageId, messageItem.popReceipt)
     expect(sqMockSendMessage).toHaveBeenCalledTimes(numberOfMessageItems)
     for (let i = 0; i < numberOfMessageItems; i++) {
-      const base64EncodedNotification = Buffer.from(JSON.stringify(JSON.parse(Buffer.from(receivedMessageItems[i].messageText, 'base64').toString('utf8')).notification), 'utf8').toString('base64')
+      const b64EncNotification = base64EncodeNotification(receivedMessageItems[i].messageText)
       const visibilityTimeout = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_VISIBILITY_TIMEOUT_BASE + (i < messageReceiveBatchSize ? 1 : 2)
       expect(sqMockDeleteMessage).toHaveBeenNthCalledWith(i + 1, receivedMessageItems[i].messageId, receivedMessageItems[i].popReceipt)
-      expect(sqMockSendMessage).toHaveBeenNthCalledWith(i + 1, base64EncodedNotification, { visibilityTimeout })
+      expect(sqMockSendMessage).toHaveBeenNthCalledWith(i + 1, b64EncNotification, { visibilityTimeout })
     }
   })
 
@@ -97,14 +108,11 @@ describe('ProcessRateLimitedMessages function', () => {
     await processRateLimitedMessages(context)
 
     const messageItem = receivedMessageItems[0]
-    expect(sqMockReceiveMessages).toHaveBeenCalledTimes(2)
-    expect(sqMockReceiveMessages).toHaveBeenCalledWith({ numberOfMessages: testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_PROCESSING_BATCH_SIZE })
-    expect(sqMockDeleteMessage).toHaveBeenCalledTimes(numberOfMessageItems)
-    expect(sqMockDeleteMessage).toHaveBeenCalledWith(messageItem.messageId, messageItem.popReceipt)
-    expect(sqMockSendMessage).toHaveBeenCalledTimes(numberOfMessageItems)
-    const base64EncodedNotification = Buffer.from(JSON.stringify(JSON.parse(Buffer.from(messageItem.messageText, 'base64').toString('utf8')).notification), 'utf8').toString('base64')
+    expectSingleProcessedBatchIsCorrect(messageItem, numberOfMessageItems)
+
+    const b64EncNotification = base64EncodeNotification(messageItem.messageText)
     const visibilityTimeout = testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_VISIBILITY_TIMEOUT_BASE + 1 + visibilityTimeoutForTomorrow
-    expect(sqMockSendMessage).toHaveBeenCalledWith(base64EncodedNotification, { visibilityTimeout })
+    expect(sqMockSendMessage).toHaveBeenCalledWith(b64EncNotification, { visibilityTimeout })
   })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
