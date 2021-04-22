@@ -37,7 +37,8 @@ module.exports = async function (context) {
       }
     } else {
       // Message will go to poision queue after dequeueCount has reached max
-      // (default 5). We don't want to use poision queue - add to failed queue.
+      // (default 5). We don't want to use poision queue as it doesn't include
+      // the error message so add to failed queue.
       if (dequeueCount < 5 && isErrorOkToTryAgain(error)) {
         context.log.warn('Message sending has failed but is ok to try again', notification)
         // Throwing error causes the message to be added back to the queue with

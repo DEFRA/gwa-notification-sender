@@ -71,7 +71,8 @@ will be created if they do not already exist.
 The app uses `local.settings.json` for local development.
 [.local.settings.json](.local.settings.json) can be used as the
 basis as it contains all required env vars with the exception of secrets which
-have been removed. The connection string for Azurite is included.
+have been removed. The connection string for Azurite is included as this is not
+a secret.
 
 ## Notify Set Up
 
