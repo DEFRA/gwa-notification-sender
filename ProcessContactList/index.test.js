@@ -6,6 +6,10 @@ const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactList = require('./index')
+const functionDef = require('./function')
+
+const inputBlobBindingName = 'blobContents'
+const inputBlobTriggerBindingName = 'myBlob'
 
 const message = 'message to send'
 const blobContents = { contacts: [], message }
@@ -57,7 +61,7 @@ describe('ProcessContactList function', () => {
 
   test('a single batch is created for 2500 contacts', async () => {
     const contacts = generateContacts(2500)
-    context.bindings.blobContents = { contacts, message }
+    context.bindings[inputBlobBindingName] = { contacts, message }
 
     const now = Date.now()
     Date.now = jest.fn(() => now)
@@ -78,7 +82,7 @@ describe('ProcessContactList function', () => {
   test('two batches are created for 2501 contacts', async () => {
     const contacts = generateContacts(2501)
     const uploadContacts = [...contacts]
-    context.bindings.blobContents = { contacts, message }
+    context.bindings[inputBlobBindingName] = { contacts, message }
 
     const now = Date.now()
     Date.now = jest.fn(() => now)
@@ -107,5 +111,31 @@ describe('ProcessContactList function', () => {
 
     await expect(processContactList(context)).rejects.toThrow(Error)
     expect(context.log.error).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ProcessContactList bindings', () => {
+  const outputBindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+
+  test('two input bindings exist', () => {
+    expect(outputBindings).toHaveLength(2)
+  })
+
+  test('blobTrigger input binding is correct', () => {
+    const bindings = outputBindings.filter(b => b.type === 'blobTrigger')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.name).toEqual(inputBlobTriggerBindingName)
+    expect(binding.path).toEqual(`%${testEnvVars.CONTACT_LIST_CONTAINER}%/{contactListBlobName}`)
+  })
+
+  test('blob binding is correct', () => {
+    const bindings = functionDef.bindings.filter(b => b.type === 'blob')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.name).toEqual(inputBlobBindingName)
+    expect(binding.path).toEqual(`%${testEnvVars.CONTACT_LIST_CONTAINER}%/{contactListBlobName}`)
   })
 })

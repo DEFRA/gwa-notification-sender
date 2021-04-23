@@ -7,8 +7,10 @@ const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactListBatches = require('./index')
+const functionDef = require('./function')
 
-const contactListBatchFileName = 'contactListBatchFileName'
+const inputBindingName = 'contactListBatchFileName'
+const outputBindingName = 'messagesToSend'
 
 function testSentMessages (fileContents, sentMessages) {
   const { contacts, message } = fileContents
@@ -26,7 +28,7 @@ function setMockDownload (contents) {
 }
 
 describe('ProcessContactListBatches function', () => {
-  beforeAll(() => { context.bindings = { contactListBatchFileName } })
+  beforeAll(() => { context.bindings[inputBindingName] = inputBindingName })
 
   afterEach(() => { jest.clearAllMocks() })
 
@@ -76,7 +78,7 @@ describe('ProcessContactListBatches function', () => {
     await processContactListBatches(context)
 
     expect(mockBlobClient).toHaveBeenCalledTimes(1)
-    expect(mockBlobClient).toHaveBeenCalledWith(contactListBatchFileName)
+    expect(mockBlobClient).toHaveBeenCalledWith(inputBindingName)
     expect(mockDelete).toHaveBeenCalledTimes(1)
   })
 
@@ -86,5 +88,27 @@ describe('ProcessContactListBatches function', () => {
 
     await expect(processContactListBatches(context)).rejects.toThrow(Error)
     expect(context.log.error).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ProcessContactListBatches bindings', () => {
+  test('queueTrigger input binding is correct', () => {
+    const bindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.name).toEqual(inputBindingName)
+    expect(binding.type).toEqual('queueTrigger')
+    expect(binding.queueName).toEqual(`%${testEnvVars.CONTACT_LIST_BATCHES_QUEUE}%`)
+  })
+
+  test('queue output binding is correct', () => {
+    const bindings = functionDef.bindings.filter(binding => binding.direction === 'out')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.name).toEqual(outputBindingName)
+    expect(binding.type).toEqual('queue')
+    expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE}%`)
   })
 })
