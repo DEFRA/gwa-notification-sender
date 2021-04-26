@@ -5,7 +5,7 @@ const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
-const processContactList = require('./index')
+const processContactList = require('.')
 const { bindings: functionBindings } = require('./function')
 
 const inputBlobBindingName = 'blobContents'
