@@ -6,7 +6,7 @@ const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactList = require('./index')
-const functionDef = require('./function')
+const { bindings: functionBindings } = require('./function')
 
 const inputBlobBindingName = 'blobContents'
 const inputBlobTriggerBindingName = 'myBlob'
@@ -115,7 +115,7 @@ describe('ProcessContactList function', () => {
 })
 
 describe('ProcessContactList bindings', () => {
-  const inputBindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+  const inputBindings = functionBindings.filter(binding => binding.direction === 'in')
 
   test('two input bindings exist', () => {
     expect(inputBindings).toHaveLength(2)
@@ -131,7 +131,7 @@ describe('ProcessContactList bindings', () => {
   })
 
   test('blob binding is correct', () => {
-    const bindings = functionDef.bindings.filter(b => b.type === 'blob')
+    const bindings = inputBindings.filter(b => b.type === 'blob')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]

@@ -7,7 +7,7 @@ const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
 const processContactListBatches = require('./index')
-const functionDef = require('./function')
+const { bindings: functionBindings } = require('./function')
 
 const inputBindingName = 'contactListBatchFileName'
 const outputBindingName = 'messagesToSend'
@@ -93,7 +93,7 @@ describe('ProcessContactListBatches function', () => {
 
 describe('ProcessContactListBatches bindings', () => {
   test('queueTrigger input binding is correct', () => {
-    const bindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+    const bindings = functionBindings.filter(binding => binding.direction === 'in')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
@@ -103,7 +103,7 @@ describe('ProcessContactListBatches bindings', () => {
   })
 
   test('queue output binding is correct', () => {
-    const bindings = functionDef.bindings.filter(binding => binding.direction === 'out')
+    const bindings = functionBindings.filter(binding => binding.direction === 'out')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
