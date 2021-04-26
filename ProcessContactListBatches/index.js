@@ -30,12 +30,9 @@ module.exports = async function (context) {
 
     const { contacts, message } = JSON.parse(blobContents)
 
-    for (let i = 0; i < contacts.length; i++) {
-      const phoneNumber = contacts[i].phoneNumber
-      const msg = {
-        message,
-        phoneNumber
-      }
+    for (const contact of contacts) {
+      const phoneNumber = contact.phoneNumber
+      const msg = { message, phoneNumber }
       messagesToBeSent.push(msg)
     }
 
