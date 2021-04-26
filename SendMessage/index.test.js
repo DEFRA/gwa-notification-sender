@@ -4,7 +4,7 @@ const { mockNotifyClient } = require('notifications-node-client').mocks
 const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 
-const sendMessage = require('./index')
+const sendMessage = require('.')
 const { bindings: functionBindings } = require('./function')
 
 const inputBindingName = 'notification'

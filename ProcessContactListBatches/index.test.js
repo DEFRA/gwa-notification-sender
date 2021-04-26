@@ -6,7 +6,7 @@ const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateContacts = require('../test/generateContacts')
 
-const processContactListBatches = require('./index')
+const processContactListBatches = require('.')
 const { bindings: functionBindings } = require('./function')
 
 const inputBindingName = 'contactListBatchFileName'

@@ -5,7 +5,7 @@ const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 const generateMessageItems = require('../test/generateMessageItems')
 
-const processRateLimitedMessages = require('./index')
+const processRateLimitedMessages = require('.')
 const { bindings: functionBindings } = require('./function')
 
 function mockBatchProcessingComplete (done) {
