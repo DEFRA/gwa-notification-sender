@@ -5,6 +5,10 @@ const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 
 const sendMessage = require('./index')
+const functionDef = require('./function')
+
+const inputBindingName = 'notification'
+const rateLimitExceededQueueName = 'rateLimitExceeded'
 
 describe('SendMessage function', () => {
   const phoneNumber = '07000111222'
@@ -41,11 +45,11 @@ describe('SendMessage function', () => {
 
     await sendMessage(context)
 
-    expect(context.bindings).toHaveProperty('rateLimitExceeded')
-    expect(context.bindings.rateLimitExceeded).toHaveProperty('error')
-    expect(context.bindings.rateLimitExceeded.error).toMatchObject({ errors, status_code: rateLimitedStatusCode })
-    expect(context.bindings.rateLimitExceeded).toHaveProperty('notification')
-    expect(context.bindings.rateLimitExceeded.notification).toMatchObject(notification)
+    expect(context.bindings).toHaveProperty(rateLimitExceededQueueName)
+    expect(context.bindings[rateLimitExceededQueueName]).toHaveProperty('error')
+    expect(context.bindings[rateLimitExceededQueueName].error).toMatchObject({ errors, status_code: rateLimitedStatusCode })
+    expect(context.bindings[rateLimitExceededQueueName]).toHaveProperty(inputBindingName)
+    expect(context.bindings[rateLimitExceededQueueName][inputBindingName]).toMatchObject(notification)
     expect(context.log.error).toHaveBeenCalled()
   })
 
@@ -75,9 +79,45 @@ describe('SendMessage function', () => {
     expect(context.bindings).toHaveProperty('failed')
     expect(context.bindings.failed).toHaveProperty('error')
     expect(context.bindings.failed.error).toMatchObject({ errors, status_code: errorStatusCode })
-    expect(context.bindings.failed).toHaveProperty('notification')
-    expect(context.bindings.failed.notification).toMatchObject(notification)
+    expect(context.bindings.failed).toHaveProperty(inputBindingName)
+    expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
     expect(context.log.error).toHaveBeenCalled()
     expect(context.log.warn).toHaveBeenCalled()
+  })
+})
+
+describe('SendMessage bindings', () => {
+  test('queueTrigger input binding is correct', () => {
+    const bindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.name).toEqual(inputBindingName)
+    expect(binding.type).toEqual('queueTrigger')
+    expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE}%`)
+  })
+
+  const outputBindings = functionDef.bindings.filter(binding => binding.direction === 'out')
+
+  test('two output bindings exist', () => {
+    expect(outputBindings).toHaveLength(2)
+  })
+
+  test('failed message queue output binding is correct', () => {
+    const bindings = functionDef.bindings.filter(binding => binding.name === 'failed')
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.type).toEqual('queue')
+    expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_QUEUE}%`)
+  })
+
+  test('rate limited message queue output binding is correct', () => {
+    const bindings = functionDef.bindings.filter(binding => binding.name === rateLimitExceededQueueName)
+    expect(bindings).toHaveLength(1)
+
+    const binding = bindings[0]
+    expect(binding.type).toEqual('queue')
+    expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE}%`)
   })
 })
