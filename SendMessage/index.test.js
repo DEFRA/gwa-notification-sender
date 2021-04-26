@@ -5,7 +5,7 @@ const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
 
 const sendMessage = require('./index')
-const functionDef = require('./function')
+const { bindings: functionBindings } = require('./function')
 
 const inputBindingName = 'notification'
 const rateLimitExceededQueueName = 'rateLimitExceeded'
@@ -88,7 +88,7 @@ describe('SendMessage function', () => {
 
 describe('SendMessage bindings', () => {
   test('queueTrigger input binding is correct', () => {
-    const bindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+    const bindings = functionBindings.filter(binding => binding.direction === 'in')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
@@ -97,14 +97,14 @@ describe('SendMessage bindings', () => {
     expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE}%`)
   })
 
-  const outputBindings = functionDef.bindings.filter(binding => binding.direction === 'out')
+  const outputBindings = functionBindings.filter(binding => binding.direction === 'out')
 
   test('two output bindings exist', () => {
     expect(outputBindings).toHaveLength(2)
   })
 
   test('failed message queue output binding is correct', () => {
-    const bindings = functionDef.bindings.filter(binding => binding.name === 'failed')
+    const bindings = outputBindings.filter(binding => binding.name === 'failed')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
@@ -113,7 +113,7 @@ describe('SendMessage bindings', () => {
   })
 
   test('rate limited message queue output binding is correct', () => {
-    const bindings = functionDef.bindings.filter(binding => binding.name === rateLimitExceededQueueName)
+    const bindings = outputBindings.filter(binding => binding.name === rateLimitExceededQueueName)
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]

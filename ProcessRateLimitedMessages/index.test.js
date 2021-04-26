@@ -6,7 +6,7 @@ const testEnvVars = require('../test/testEnvVars')
 const generateMessageItems = require('../test/generateMessageItems')
 
 const processRateLimitedMessages = require('./index')
-const functionDef = require('./function')
+const { bindings: functionBindings } = require('./function')
 
 function mockBatchProcessingComplete (done) {
   sbMockListBlobsFlat.mockImplementation(() => { return { next: () => { return { done, value: undefined } } } })
@@ -128,7 +128,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
 describe('ProcessRateLimitedMessages bindings', () => {
   test('timer schedule is set to run every minute', () => {
-    const bindings = functionDef.bindings.filter((binding) => binding.direction === 'in')
+    const bindings = functionBindings.filter((binding) => binding.direction === 'in')
     expect(bindings).toHaveLength(1)
     expect(bindings[0].schedule).toEqual('0 */1 * * * *')
   })
