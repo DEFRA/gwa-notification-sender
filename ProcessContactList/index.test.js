@@ -115,14 +115,14 @@ describe('ProcessContactList function', () => {
 })
 
 describe('ProcessContactList bindings', () => {
-  const outputBindings = functionDef.bindings.filter(binding => binding.direction === 'in')
+  const inputBindings = functionDef.bindings.filter(binding => binding.direction === 'in')
 
   test('two input bindings exist', () => {
-    expect(outputBindings).toHaveLength(2)
+    expect(inputBindings).toHaveLength(2)
   })
 
   test('blobTrigger input binding is correct', () => {
-    const bindings = outputBindings.filter(b => b.type === 'blobTrigger')
+    const bindings = inputBindings.filter(b => b.type === 'blobTrigger')
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
