@@ -20,8 +20,11 @@ function testSentMessages (fileContents, sentMessages) {
   })
 }
 
-function setMockDownload (contents) {
+function setMockDownload (contents, encoding) {
   const mockReadable = new Readable({ read () {} })
+  if (encoding) {
+    mockReadable.setEncoding(encoding) // default is null
+  }
   mockReadable.push(JSON.stringify(contents))
   mockReadable.push(null)
   mockDownload.mockImplementation(() => { return { readableStreamBody: mockReadable } })
@@ -74,6 +77,16 @@ describe('ProcessContactListBatches function', () => {
 
   test('batch contact list blob is deleted', async () => {
     setMockDownload({ contacts: [], message: 'messages' })
+
+    await processContactListBatches(context)
+
+    expect(mockBlobClient).toHaveBeenCalledTimes(1)
+    expect(mockBlobClient).toHaveBeenCalledWith(inputBindingName)
+    expect(mockDelete).toHaveBeenCalledTimes(1)
+  })
+
+  test('file downloads when contents are utf8 encoded', async () => {
+    setMockDownload({ contacts: [], message: 'messages' }, 'utf8')
 
     await processContactListBatches(context)
 
