@@ -1,51 +1,69 @@
-const { mockBlobClient: sbMockBlobClient, mockBlockBlobClient: sbMockBlockBlobClient, mockContainerClient: sbMockContainerClient, mockCreateIfNotExists: sbMockCreateIfNotExists, mockDelete: sbMockDelete, mockUpload: sbMockUpload } = require('@azure/storage-blob').mocks
-const { mockCreateIfNotExists: sqMockCreateIfNotExists, mockQueueClient: sqMockQueueClient, mockSendMessage: sqMockSendMessage } = require('@azure/storage-queue').mocks
-
-const context = require('../test/defaultContext')
 const testEnvVars = require('../test/testEnvVars')
-const generateContacts = require('../test/generateContacts')
-
-const processContactList = require('.')
-const { bindings: functionBindings } = require('./function')
 
 const inputBlobBindingName = 'blobContents'
 const inputBlobTriggerBindingName = 'myBlob'
 
-const message = 'message to send'
-const blobContents = { contacts: [], message }
-
 describe('ProcessContactList function', () => {
-  beforeAll(() => {
+  const context = require('../test/defaultContext')
+  const generateContacts = require('../test/generateContacts')
+
+  const message = 'message to send'
+  const blobContents = { contacts: [], message }
+
+  let processContactList
+  let ContainerClient
+  let QueueClient
+  let deleteMock
+  let uploadMock
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jest.resetModules()
+
+    ContainerClient = require('@azure/storage-blob').ContainerClient
+    QueueClient = require('@azure/storage-queue').QueueClient
+    jest.mock('@azure/storage-blob')
+    jest.mock('@azure/storage-queue')
+
+    deleteMock = jest.fn()
+    uploadMock = jest.fn()
+    ContainerClient.prototype.getBlobClient.mockImplementation(() => {
+      return { delete: deleteMock }
+    })
+    ContainerClient.prototype.getBlockBlobClient.mockImplementation(() => {
+      return { upload: uploadMock }
+    })
+
+    processContactList = require('.')
+
     context.bindingData = { blobTrigger: '', contactListBlobName: '' }
     context.bindings = {
       blobContents, myBlob: { length: JSON.stringify(blobContents).length }
     }
   })
 
-  afterEach(() => { jest.clearAllMocks() })
-
   test('clients are created with correct env vars', async () => {
     await processContactList(context)
 
-    expect(sqMockQueueClient).toHaveBeenCalledTimes(1)
-    expect(sqMockQueueClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_QUEUE)
-    expect(sbMockContainerClient).toHaveBeenCalledTimes(2)
-    expect(sbMockContainerClient).toHaveBeenNthCalledWith(1, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
-    expect(sbMockContainerClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_CONTAINER)
+    expect(QueueClient).toHaveBeenCalledTimes(1)
+    expect(QueueClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_QUEUE)
+    expect(ContainerClient).toHaveBeenCalledTimes(2)
+    expect(ContainerClient).toHaveBeenNthCalledWith(1, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
+    expect(ContainerClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_CONTAINER)
   })
 
   test('resources will be created if they do not exist', async () => {
     await processContactList(context)
 
-    expect(sqMockCreateIfNotExists).toHaveBeenCalledTimes(1)
-    expect(sbMockCreateIfNotExists).toHaveBeenCalledTimes(1)
+    expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
+    expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
   })
 
   test('a file with no contacts does not upload or send messages', async () => {
     await processContactList(context)
 
-    expect(sbMockBlockBlobClient).not.toHaveBeenCalled()
-    expect(sqMockQueueClient).not.toHaveBeenCalled()
+    expect(uploadMock).not.toHaveBeenCalled()
+    expect(QueueClient.mock.instances[0].sendMessage).not.toHaveBeenCalled()
   })
 
   test('contact list blob is deleted', async () => {
@@ -54,9 +72,10 @@ describe('ProcessContactList function', () => {
 
     await processContactList(context)
 
-    expect(sbMockBlobClient).toHaveBeenCalledTimes(1)
-    expect(sbMockBlobClient).toHaveBeenCalledWith(contactListBlobName)
-    expect(sbMockDelete).toHaveBeenCalledTimes(1)
+    const getBlobClientMock = ContainerClient.mock.instances[1].getBlobClient
+    expect(getBlobClientMock).toHaveBeenCalledTimes(1)
+    expect(getBlobClientMock).toHaveBeenCalledWith(contactListBlobName)
+    expect(deleteMock).toHaveBeenCalledTimes(1)
   })
 
   test('a single batch is created for 2500 contacts', async () => {
@@ -71,12 +90,16 @@ describe('ProcessContactList function', () => {
 
     await processContactList(context)
 
-    expect(sbMockBlockBlobClient).toHaveBeenCalledTimes(1)
-    expect(sbMockBlockBlobClient).toHaveBeenCalledWith(expectedBlobName)
-    expect(sbMockUpload).toHaveBeenCalledTimes(1)
-    expect(sbMockUpload).toHaveBeenCalledWith(expectedUploadBlobContent, expectedUploadBlobContent.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
-    expect(sqMockSendMessage).toHaveBeenCalledTimes(1)
-    expect(sqMockSendMessage).toHaveBeenCalledWith(expectedMessageContent, { visibilityTimeout: testEnvVars.INITIAL_MESSAGE_VISIBILITY })
+    const getBlockBlobClientMock = ContainerClient.mock.instances[0].getBlockBlobClient
+    expect(getBlockBlobClientMock).toHaveBeenCalledTimes(1)
+    expect(getBlockBlobClientMock).toHaveBeenCalledWith(expectedBlobName)
+
+    expect(uploadMock).toHaveBeenCalledTimes(1)
+    expect(uploadMock).toHaveBeenCalledWith(expectedUploadBlobContent, expectedUploadBlobContent.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
+
+    const sendMessageMock = QueueClient.mock.instances[0].sendMessage
+    expect(sendMessageMock).toHaveBeenCalledTimes(1)
+    expect(sendMessageMock).toHaveBeenCalledWith(expectedMessageContent, { visibilityTimeout: testEnvVars.INITIAL_MESSAGE_VISIBILITY })
   })
 
   test('two batches are created for 2501 contacts', async () => {
@@ -95,14 +118,18 @@ describe('ProcessContactList function', () => {
 
     await processContactList(context)
 
-    expect(sbMockBlockBlobClient).toHaveBeenCalledTimes(2)
-    expect(sbMockBlockBlobClient).toHaveBeenCalledWith(expectedBlobName1)
-    expect(sbMockUpload).toHaveBeenCalledTimes(2)
-    expect(sbMockUpload).toHaveBeenNthCalledWith(1, expectedUploadBlobContent1, expectedUploadBlobContent1.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
-    expect(sbMockUpload).toHaveBeenNthCalledWith(2, expectedUploadBlobContent2, expectedUploadBlobContent2.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
-    expect(sqMockSendMessage).toHaveBeenCalledTimes(2)
-    expect(sqMockSendMessage).toHaveBeenNthCalledWith(1, expectedMessageContent1, { visibilityTimeout: testEnvVars.INITIAL_MESSAGE_VISIBILITY })
-    expect(sqMockSendMessage).toHaveBeenNthCalledWith(2, expectedMessageContent2, { visibilityTimeout: 90 + testEnvVars.INITIAL_MESSAGE_VISIBILITY })
+    const getBlockBlobClientMock = ContainerClient.mock.instances[0].getBlockBlobClient
+    expect(getBlockBlobClientMock).toHaveBeenCalledTimes(2)
+    expect(getBlockBlobClientMock).toHaveBeenCalledWith(expectedBlobName1)
+
+    expect(uploadMock).toHaveBeenCalledTimes(2)
+    expect(uploadMock).toHaveBeenNthCalledWith(1, expectedUploadBlobContent1, expectedUploadBlobContent1.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
+    expect(uploadMock).toHaveBeenNthCalledWith(2, expectedUploadBlobContent2, expectedUploadBlobContent2.length, { blobHTTPHeaders: { blobContentType: 'application/json' } })
+
+    const sendMessageMock = QueueClient.mock.instances[0].sendMessage
+    expect(sendMessageMock).toHaveBeenCalledTimes(2)
+    expect(sendMessageMock).toHaveBeenNthCalledWith(1, expectedMessageContent1, { visibilityTimeout: testEnvVars.INITIAL_MESSAGE_VISIBILITY })
+    expect(sendMessageMock).toHaveBeenNthCalledWith(2, expectedMessageContent2, { visibilityTimeout: 90 + testEnvVars.INITIAL_MESSAGE_VISIBILITY })
   })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
@@ -115,6 +142,8 @@ describe('ProcessContactList function', () => {
 })
 
 describe('ProcessContactList bindings', () => {
+  const { bindings: functionBindings } = require('./function')
+
   const inputBindings = functionBindings.filter(binding => binding.direction === 'in')
 
   test('two input bindings exist', () => {

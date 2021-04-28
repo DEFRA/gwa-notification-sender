@@ -16,10 +16,12 @@ describe('SendMessage function', () => {
   let NotifyClient
 
   beforeEach(() => {
-    jest.mock('notifications-node-client')
     jest.clearAllMocks()
     jest.resetModules()
+
     NotifyClient = require('notifications-node-client').NotifyClient
+    jest.mock('notifications-node-client')
+
     sendMessage = require('.')
 
     context.bindingData = { dequeueCount: 1 }
