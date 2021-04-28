@@ -31,13 +31,14 @@ describe('ProcessRateLimitedMessages function', () => {
   }
 
   beforeEach(() => {
-    jest.mock('@azure/storage-blob')
-    jest.mock('@azure/storage-queue')
     jest.clearAllMocks()
     jest.resetModules()
 
     ContainerClient = require('@azure/storage-blob').ContainerClient
     QueueClient = require('@azure/storage-queue').QueueClient
+    jest.mock('@azure/storage-blob')
+    jest.mock('@azure/storage-queue')
+
     processRateLimitedMessages = require('.')
   })
 

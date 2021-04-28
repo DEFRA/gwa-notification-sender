@@ -43,25 +43,28 @@ describe('ProcessContactListBatches function', () => {
   let processContactListBatches
 
   beforeEach(() => {
-    jest.mock('@azure/storage-blob')
     jest.clearAllMocks()
     jest.resetModules()
+
     ContainerClient = require('@azure/storage-blob').ContainerClient
+    jest.mock('@azure/storage-blob')
+
     processContactListBatches = require('.')
 
     context.bindings[inputBindingName] = inputFileName
   })
 
-  test.only('file specified in message is downloaded and deleted', async () => {
+  test('file specified in message is downloaded and deleted', async () => {
     const contents = { contacts: [], message: 'messages' }
     const { deleteBlobMock } = setMockDownload(contents)
+
     await processContactListBatches(context)
 
     expect(ContainerClient).toHaveBeenCalledTimes(1)
     expect(ContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
-    const containerClientMockInstance = ContainerClient.mock.instances[0]
-    expect(containerClientMockInstance.getBlobClient).toHaveBeenCalledTimes(1)
-    expect(containerClientMockInstance.getBlobClient).toHaveBeenCalledWith(inputFileName)
+    const getBlobClientMock = ContainerClient.mock.instances[0].getBlobClient
+    expect(getBlobClientMock).toHaveBeenCalledTimes(1)
+    expect(getBlobClientMock).toHaveBeenCalledWith(inputFileName)
     expect(deleteBlobMock).toHaveBeenCalledTimes(1)
   })
 
@@ -100,8 +103,9 @@ describe('ProcessContactListBatches function', () => {
 
     await processContactListBatches(context)
 
-    expect(ContainerClient).toHaveBeenCalledTimes(1)
-    expect(ContainerClient).toHaveBeenCalledWith(inputFileName)
+    const getBlobClientMock = ContainerClient.mock.instances[0].getBlobClient
+    expect(getBlobClientMock).toHaveBeenCalledTimes(1)
+    expect(getBlobClientMock).toHaveBeenCalledWith(inputFileName)
     expect(deleteBlobMock).toHaveBeenCalledTimes(1)
   })
 
