@@ -23,18 +23,12 @@ module.exports = async function (context) {
     const { contactListBatchFileName } = context.bindings
     context.log('Contact List Batch Queue Trigger function activated:\n - QueueItem:', contactListBatchFileName)
 
-    const messagesToBeSent = []
     const batchesBlobClient = batchesContainerClient.getBlobClient(contactListBatchFileName)
     const downloadBlobResponse = await batchesBlobClient.download()
     const blobContents = (await streamToBuffer(downloadBlobResponse.readableStreamBody)).toString()
-
     const { contacts, message } = JSON.parse(blobContents)
 
-    for (const contact of contacts) {
-      const phoneNumber = contact.phoneNumber
-      const msg = { message, phoneNumber }
-      messagesToBeSent.push(msg)
-    }
+    const messagesToBeSent = contacts.map(contact => { return { message, phoneNumber: contact.phoneNumber } })
 
     context.bindings.messagesToSend = messagesToBeSent
     context.log(`${messagesToBeSent.length} messages added to queue for sending.`)
