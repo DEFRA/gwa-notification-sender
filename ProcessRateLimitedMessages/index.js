@@ -14,6 +14,8 @@ const toSendQueueClient = new QueueClient(connectionString, toSendQueue)
 
 async function ensureResourcesExist () {
   await toSendQueueClient.createIfNotExists()
+  await failedToSendQueueClient.createIfNotExists()
+  await batchesContainerClient.createIfNotExists()
 }
 
 async function isBatchProcessingComplete () {

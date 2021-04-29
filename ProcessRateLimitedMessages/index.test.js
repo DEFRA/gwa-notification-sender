@@ -54,6 +54,16 @@ describe('ProcessRateLimitedMessages function', () => {
     expect(QueueClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE)
   })
 
+  test('resources will be created if they do not exist', async () => {
+    mockBatchProcessingComplete(false)
+
+    await processRateLimitedMessages(context)
+
+    expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
+    expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
+    expect(QueueClient.mock.instances[1].createIfNotExists).toHaveBeenCalledTimes(1)
+  })
+
   test('messages are not sent when batches still exist', async () => {
     mockBatchProcessingComplete(false)
 
