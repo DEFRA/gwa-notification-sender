@@ -13,12 +13,10 @@ const batchesContainerClient = new ContainerClient(connectionString, batchesCont
 const contactListContainerClient = new ContainerClient(connectionString, contactListContainer)
 const batchesQueueClient = new QueueClient(connectionString, contactListQueue)
 
-async function ensureResourcesExist () {
-  // Prevent erroring if container or queue doesn't exist. Ideally this would
-  // be outside of the function body but no top level await
-  await batchesContainerClient.createIfNotExists()
-  await batchesQueueClient.createIfNotExists()
-}
+Promise.all([
+  batchesContainerClient.createIfNotExists(),
+  batchesQueueClient.createIfNotExists()
+]).then(values => console.log(`Created resources for ProcessContactList function: ${values}`))
 
 function createBatches (blobContents) {
   const { contacts, message } = JSON.parse(blobContents)
@@ -34,8 +32,6 @@ function createBatches (blobContents) {
 
 module.exports = async function (context) {
   try {
-    await ensureResourcesExist()
-
     const { blobTrigger, contactListBlobName } = context.bindingData
     const { blobContents } = context.bindings
     context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${blobContents.length} Bytes`)

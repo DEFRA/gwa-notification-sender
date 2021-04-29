@@ -39,9 +39,7 @@ describe('ProcessContactList function', () => {
     context.bindings = { blobContents }
   })
 
-  test('clients are created with correct env vars', async () => {
-    await processContactList(context)
-
+  test('clients are created with correct env vars without executing function', async () => {
     expect(QueueClient).toHaveBeenCalledTimes(1)
     expect(QueueClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_QUEUE)
     expect(ContainerClient).toHaveBeenCalledTimes(2)
@@ -49,9 +47,7 @@ describe('ProcessContactList function', () => {
     expect(ContainerClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_CONTAINER)
   })
 
-  test('resources will be created if they do not exist', async () => {
-    await processContactList(context)
-
+  test('resources will be created if they do not exist without executing function', async () => {
     expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
   })
