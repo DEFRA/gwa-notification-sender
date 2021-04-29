@@ -17,6 +17,8 @@ describe('ProcessContactListBatches function', () => {
     })
   }
 
+  let deleteMock
+
   function setMockDownload (contents, encoding) {
     const mockReadable = new Readable({ read () {} })
     if (encoding) {
@@ -25,16 +27,13 @@ describe('ProcessContactListBatches function', () => {
     mockReadable.push(JSON.stringify(contents))
     mockReadable.push(null)
 
-    const deleteBlobMock = jest.fn().mockResolvedValue()
+    deleteMock = jest.fn().mockResolvedValue()
     ContainerClient.prototype.getBlobClient.mockImplementation(() => {
       return {
         download: jest.fn().mockResolvedValue({ readableStreamBody: mockReadable }),
-        delete: deleteBlobMock
+        delete: deleteMock
       }
     })
-    return {
-      deleteBlobMock
-    }
   }
 
   const inputFileName = 'incoming-file.json'
@@ -56,7 +55,7 @@ describe('ProcessContactListBatches function', () => {
 
   test('file specified in message is downloaded and deleted', async () => {
     const contents = { contacts: [], message: 'messages' }
-    const { deleteBlobMock } = setMockDownload(contents)
+    setMockDownload(contents)
 
     await processContactListBatches(context)
 
@@ -65,7 +64,7 @@ describe('ProcessContactListBatches function', () => {
     const getBlobClientMock = ContainerClient.mock.instances[0].getBlobClient
     expect(getBlobClientMock).toHaveBeenCalledTimes(1)
     expect(getBlobClientMock).toHaveBeenCalledWith(inputFileName)
-    expect(deleteBlobMock).toHaveBeenCalledTimes(1)
+    expect(deleteMock).toHaveBeenCalledTimes(1)
   })
 
   test('a message is sent for a single contact in the batch', async () => {
@@ -99,14 +98,14 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('file downloads when contents are utf8 encoded', async () => {
-    const { deleteBlobMock } = setMockDownload({ contacts: [], message: 'messages' }, 'utf8')
+    setMockDownload({ contacts: [], message: 'messages' }, 'utf8')
 
     await processContactListBatches(context)
 
     const getBlobClientMock = ContainerClient.mock.instances[0].getBlobClient
     expect(getBlobClientMock).toHaveBeenCalledTimes(1)
     expect(getBlobClientMock).toHaveBeenCalledWith(inputFileName)
-    expect(deleteBlobMock).toHaveBeenCalledTimes(1)
+    expect(deleteMock).toHaveBeenCalledTimes(1)
   })
 
   test('an error is thrown (and logged) when an error occurs', async () => {
