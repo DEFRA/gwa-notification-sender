@@ -47,9 +47,16 @@ describe('ProcessContactList function', () => {
     expect(ContainerClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_CONTAINER)
   })
 
-  test('resources will be created if they do not exist without executing function', async () => {
+  test('resources will be created if they do not exist and log the output', async () => {
+    const values = [1, 2]
+    ContainerClient.prototype.createIfNotExists.mockResolvedValueOnce(values[0])
+    QueueClient.prototype.createIfNotExists.mockResolvedValueOnce(values[1])
+
+    await processContactList(context)
+
     expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
+    expect(context.log).toHaveBeenNthCalledWith(1, `Output from ensureResourcesExist: ${values}.`)
   })
 
   test('a file with no contacts does not upload or send messages', async () => {
@@ -125,12 +132,34 @@ describe('ProcessContactList function', () => {
     expect(sendMessageMock).toHaveBeenNthCalledWith(2, expectedMessageContent2, { visibilityTimeout: 90 + testEnvVars.INITIAL_MESSAGE_VISIBILITY })
   })
 
-  test('an error is thrown (and logged) when an error occurs', async () => {
-    // Doesn't matter what causes the error, just that an error is thrown
-    context.bindings = null
+  describe('errors', () => {
+    const error = new Error('busted')
 
-    await expect(processContactList(context)).rejects.toThrow(Error)
-    expect(context.log.error).toHaveBeenCalledTimes(1)
+    test('an error is thrown (and logged) when an error occurs', async () => {
+      // Doesn't matter what causes the error, just that an error is thrown
+      context.bindings = null
+
+      await expect(processContactList(context)).rejects.toThrow(Error)
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+    })
+
+    test('errors generated during creating resources for queue for failed to send messages will be handled', async () => {
+      QueueClient.prototype.createIfNotExists.mockRejectedValue(error)
+
+      await processContactList(context)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenNthCalledWith(1, `Error output from ensureResourcesExist: ${error.toString()}.`)
+    })
+
+    test('errors generated during creating resources for container client will be handled', async () => {
+      ContainerClient.prototype.createIfNotExists.mockRejectedValue(error)
+
+      await processContactList(context)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenNthCalledWith(1, `Error output from ensureResourcesExist: ${error.toString()}.`)
+    })
   })
 })
 

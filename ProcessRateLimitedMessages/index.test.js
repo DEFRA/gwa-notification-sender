@@ -50,10 +50,20 @@ describe('ProcessRateLimitedMessages function', () => {
     expect(QueueClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE)
   })
 
-  test('resources will be created if they do not exist without executing function', async () => {
+  test('resources will be created if they do not exist and log the output', async () => {
+    const values = [1, 2, 3]
+    QueueClient.prototype.createIfNotExists.mockResolvedValueOnce(values[0])
+    QueueClient.prototype.createIfNotExists.mockResolvedValueOnce(values[1])
+    ContainerClient.prototype.createIfNotExists.mockResolvedValueOnce(values[2])
+
+    mockBatchProcessingComplete(false)
+
+    await processRateLimitedMessages(context)
+
     expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[1].createIfNotExists).toHaveBeenCalledTimes(1)
+    expect(context.log).toHaveBeenNthCalledWith(1, `Output from ensureResourcesExist: ${values}.`)
   })
 
   test('messages are not sent when batches still exist', async () => {
@@ -61,7 +71,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
     await processRateLimitedMessages(context)
 
-    expect(context.log).toHaveBeenCalledTimes(1)
+    expect(context.log).toHaveBeenCalledTimes(2)
     expect(context.log).toHaveBeenCalledWith('Not OK to start processing messages.')
   })
 
@@ -128,13 +138,50 @@ describe('ProcessRateLimitedMessages function', () => {
     expectSingleProcessedBatchIsCorrect(messageItem, numberOfMessageItems, visibilityTimeout)
   })
 
-  test('an error is thrown (and logged) when an error occurs', async () => {
-    // Doesn't matter what causes the error, just that an error is thrown
-    QueueClient.mockRejectedValue('error')
+  describe('errors', () => {
+    const error = new Error('busted')
 
-    await expect(processRateLimitedMessages(context)).rejects.toThrow(Error)
+    test('an error is thrown (and logged) when an error occurs', async () => {
+      // Doesn't matter what causes the error, just that an error is thrown
+      QueueClient.mockRejectedValue('error')
 
-    expect(context.log.error).toHaveBeenCalledTimes(1)
+      await expect(processRateLimitedMessages(context)).rejects.toThrow(Error)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+    })
+
+    test('errors generated during creating resources for queue to send messages to will be handled', async () => {
+      QueueClient.prototype.createIfNotExists.mockRejectedValue(error)
+
+      mockBatchProcessingComplete(false)
+
+      await processRateLimitedMessages(context)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenNthCalledWith(1, `Error output from ensureResourcesExist: ${error.toString()}.`)
+    })
+
+    test('errors generated during creating resources for queue for failed to send messages will be handled', async () => {
+      QueueClient.prototype.createIfNotExists.mockRejectedValue(error)
+
+      mockBatchProcessingComplete(false)
+
+      await processRateLimitedMessages(context)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenNthCalledWith(1, `Error output from ensureResourcesExist: ${error.toString()}.`)
+    })
+
+    test('errors generated during creating resources for container client will be handled', async () => {
+      ContainerClient.prototype.createIfNotExists.mockRejectedValue(error)
+
+      mockBatchProcessingComplete(false)
+
+      await processRateLimitedMessages(context)
+
+      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenNthCalledWith(1, `Error output from ensureResourcesExist: ${error.toString()}.`)
+    })
   })
 })
 
