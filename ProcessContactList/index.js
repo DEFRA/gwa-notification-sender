@@ -21,7 +21,7 @@ async function ensureResourcesExist () {
 }
 
 function createBatches (blobContents) {
-  const { contacts, message } = blobContents
+  const { contacts, message } = JSON.parse(blobContents)
   const batches = []
   while (contacts.length) {
     batches.push({
@@ -38,7 +38,7 @@ module.exports = async function (context) {
 
     const { blobTrigger, contactListBlobName } = context.bindingData
     const { blobContents } = context.bindings
-    context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${context.bindings.myBlob.length} Bytes`)
+    context.log(`Contact List Blob Trigger function activated:\n - Blob: ${blobTrigger}\n - Size: ${blobContents.length} Bytes`)
 
     const batches = createBatches(blobContents)
 
