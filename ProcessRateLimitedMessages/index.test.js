@@ -42,11 +42,7 @@ describe('ProcessRateLimitedMessages function', () => {
     processRateLimitedMessages = require('.')
   })
 
-  test('clients are created with correct env vars', async () => {
-    mockBatchProcessingComplete(false)
-
-    await processRateLimitedMessages(context)
-
+  test('clients are created with correct env vars without executing function', async () => {
     expect(ContainerClient).toHaveBeenCalledTimes(1)
     expect(ContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
     expect(QueueClient).toHaveBeenCalledTimes(2)
@@ -54,11 +50,7 @@ describe('ProcessRateLimitedMessages function', () => {
     expect(QueueClient).toHaveBeenNthCalledWith(2, testEnvVars.AzureWebJobsStorage, testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE)
   })
 
-  test('resources will be created if they do not exist', async () => {
-    mockBatchProcessingComplete(false)
-
-    await processRateLimitedMessages(context)
-
+  test('resources will be created if they do not exist without executing function', async () => {
     expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[1].createIfNotExists).toHaveBeenCalledTimes(1)
