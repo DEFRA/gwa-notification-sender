@@ -16,7 +16,7 @@ Promise.all([
   toSendQueueClient.createIfNotExists(),
   failedToSendQueueClient.createIfNotExists(),
   batchesContainerClient.createIfNotExists()
-])
+]).catch(e => console.error(e))
 
 async function isBatchProcessingComplete () {
   const iter = batchesContainerClient.listBlobsFlat()
