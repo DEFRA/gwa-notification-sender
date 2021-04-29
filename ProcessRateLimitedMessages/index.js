@@ -12,11 +12,16 @@ const batchesContainerClient = new ContainerClient(connectionString, batchesCont
 const failedToSendQueueClient = new QueueClient(connectionString, failedToSendQueue)
 const toSendQueueClient = new QueueClient(connectionString, toSendQueue)
 
-Promise.all([
-  toSendQueueClient.createIfNotExists(),
-  failedToSendQueueClient.createIfNotExists(),
-  batchesContainerClient.createIfNotExists()
-]).catch(e => console.error(e))
+async function ensureResourcesExist (context) {
+  await Promise
+    .all([
+      toSendQueueClient.createIfNotExists(),
+      failedToSendQueueClient.createIfNotExists(),
+      batchesContainerClient.createIfNotExists()
+    ])
+    .then(values => context.log(`Output from ensureResourcesExist: ${values}.`))
+    .catch(error => context.log.error(`Error output from ensureResourcesExist: ${error}.`))
+}
 
 async function isBatchProcessingComplete () {
   const iter = batchesContainerClient.listBlobsFlat()
@@ -34,6 +39,8 @@ function getVisibilityTimeoutForTomorrow () {
 
 module.exports = async function (context) {
   try {
+    await ensureResourcesExist(context)
+
     const okToProcess = await isBatchProcessingComplete()
     if (!okToProcess) {
       context.log('Not OK to start processing messages.')
