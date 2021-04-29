@@ -16,7 +16,7 @@ const batchesQueueClient = new QueueClient(connectionString, contactListQueue)
 Promise.all([
   batchesContainerClient.createIfNotExists(),
   batchesQueueClient.createIfNotExists()
-]).then(values => console.log(`Created resources for ProcessContactList function: ${values}`))
+])
 
 function createBatches (blobContents) {
   const { contacts, message } = JSON.parse(blobContents)

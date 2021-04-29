@@ -16,7 +16,7 @@ Promise.all([
   toSendQueueClient.createIfNotExists(),
   failedToSendQueueClient.createIfNotExists(),
   batchesContainerClient.createIfNotExists()
-]).then(values => console.log(`Created resources for ProcessRateLimitedMessages function: ${values}`))
+])
 
 async function isBatchProcessingComplete () {
   const iter = batchesContainerClient.listBlobsFlat()
