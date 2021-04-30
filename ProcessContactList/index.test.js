@@ -174,5 +174,6 @@ describe('ProcessContactList bindings', () => {
     expect(binding.name).toEqual(inputBindingName)
     expect(binding.type).toEqual('blobTrigger')
     expect(binding.path).toEqual(`%${testEnvVars.CONTACT_LIST_CONTAINER}%/{contactListBlobName}`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 })

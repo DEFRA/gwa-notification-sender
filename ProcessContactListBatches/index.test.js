@@ -128,6 +128,7 @@ describe('ProcessContactListBatches bindings', () => {
     expect(binding.name).toEqual(inputBindingName)
     expect(binding.type).toEqual('queueTrigger')
     expect(binding.queueName).toEqual(`%${testEnvVars.CONTACT_LIST_BATCHES_QUEUE}%`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 
   test('queue output binding is correct', () => {
@@ -138,5 +139,6 @@ describe('ProcessContactListBatches bindings', () => {
     expect(binding.name).toEqual(outputBindingName)
     expect(binding.type).toEqual('queue')
     expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE}%`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 })
