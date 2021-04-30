@@ -42,7 +42,7 @@ describe('ProcessRateLimitedMessages function', () => {
     processRateLimitedMessages = require('.')
   })
 
-  test('clients are created with correct env vars without executing function', async () => {
+  test('Queue and Container clients are correctly created on module import', async () => {
     expect(ContainerClient).toHaveBeenCalledTimes(1)
     expect(ContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
     expect(QueueClient).toHaveBeenCalledTimes(2)

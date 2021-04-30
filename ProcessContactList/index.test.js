@@ -39,7 +39,7 @@ describe('ProcessContactList function', () => {
     context.bindings = { blobContents }
   })
 
-  test('clients are created with correct env vars without executing function', async () => {
+  test('Queue and Container clients are correctly created on module import', async () => {
     expect(QueueClient).toHaveBeenCalledTimes(1)
     expect(QueueClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_QUEUE)
     expect(ContainerClient).toHaveBeenCalledTimes(2)

@@ -28,7 +28,7 @@ describe('SendMessage function', () => {
     context.bindings = { notification }
   })
 
-  test('Notify client is created without executing function', async () => {
+  test('Notify client is correctly created on module import', async () => {
     expect(NotifyClient).toHaveBeenCalledTimes(1)
     expect(NotifyClient).toHaveBeenCalledWith(testEnvVars.NOTIFY_CLIENT_API_KEY)
   })

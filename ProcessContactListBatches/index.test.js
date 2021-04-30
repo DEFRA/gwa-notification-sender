@@ -53,14 +53,17 @@ describe('ProcessContactListBatches function', () => {
     context.bindings[inputBindingName] = inputFileName
   })
 
+  test('Container client is correctly created on module import', async () => {
+    expect(ContainerClient).toHaveBeenCalledTimes(1)
+    expect(ContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
+  })
+
   test('file specified in message is downloaded and deleted', async () => {
     const contents = { contacts: [], message: 'messages' }
     setMockDownload(contents)
 
     await processContactListBatches(context)
 
-    expect(ContainerClient).toHaveBeenCalledTimes(1)
-    expect(ContainerClient).toHaveBeenCalledWith(testEnvVars.AzureWebJobsStorage, testEnvVars.CONTACT_LIST_BATCHES_CONTAINER)
     const getBlobClientMock = ContainerClient.mock.instances[0].getBlobClient
     expect(getBlobClientMock).toHaveBeenCalledTimes(1)
     expect(getBlobClientMock).toHaveBeenCalledWith(inputFileName)
