@@ -1,6 +1,6 @@
 const testEnvVars = require('../test/testEnvVars')
 
-const inputBlobBindingName = 'blobContents'
+const inputBindingName = 'blobContents'
 
 describe('ProcessContactList function', () => {
   const context = require('../test/defaultContext')
@@ -80,7 +80,7 @@ describe('ProcessContactList function', () => {
 
   test('a single batch is created for 2500 contacts', async () => {
     const contacts = generateContacts(2500)
-    context.bindings[inputBlobBindingName] = Buffer.from(JSON.stringify({ contacts, message }))
+    context.bindings[inputBindingName] = Buffer.from(JSON.stringify({ contacts, message }))
 
     const now = Date.now()
     Date.now = jest.fn(() => now)
@@ -105,7 +105,7 @@ describe('ProcessContactList function', () => {
   test('two batches are created for 2501 contacts', async () => {
     const contacts = generateContacts(2501)
     const uploadContacts = [...contacts]
-    context.bindings[inputBlobBindingName] = Buffer.from(JSON.stringify({ contacts, message }))
+    context.bindings[inputBindingName] = Buffer.from(JSON.stringify({ contacts, message }))
 
     const now = Date.now()
     Date.now = jest.fn(() => now)
@@ -171,7 +171,7 @@ describe('ProcessContactList bindings', () => {
     expect(bindings).toHaveLength(1)
 
     const binding = bindings[0]
-    expect(binding.name).toEqual(inputBlobBindingName)
+    expect(binding.name).toEqual(inputBindingName)
     expect(binding.type).toEqual('blobTrigger')
     expect(binding.path).toEqual(`%${testEnvVars.CONTACT_LIST_CONTAINER}%/{contactListBlobName}`)
   })
