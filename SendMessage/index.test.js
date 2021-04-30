@@ -100,6 +100,7 @@ describe('SendMessage bindings', () => {
     expect(binding.name).toEqual(inputBindingName)
     expect(binding.type).toEqual('queueTrigger')
     expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_TO_SEND_QUEUE}%`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 
   const outputBindings = functionBindings.filter(binding => binding.direction === 'out')
@@ -115,6 +116,7 @@ describe('SendMessage bindings', () => {
     const binding = bindings[0]
     expect(binding.type).toEqual('queue')
     expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_QUEUE}%`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 
   test('rate limited message queue output binding is correct', () => {
@@ -124,5 +126,6 @@ describe('SendMessage bindings', () => {
     const binding = bindings[0]
     expect(binding.type).toEqual('queue')
     expect(binding.queueName).toEqual(`%${testEnvVars.NOTIFICATIONS_FAILED_TO_SEND_RATE_LIMIT_QUEUE}%`)
+    expect(binding.connection).toEqual('AzureWebJobsStorage')
   })
 })
