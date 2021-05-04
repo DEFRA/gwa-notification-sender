@@ -28,11 +28,13 @@ describe('SendMessage function', () => {
     context.bindings = { notification }
   })
 
-  test('message is sent to Notify with correct details', async () => {
-    await sendMessage(context)
-
+  test('Notify client is correctly created on module import', async () => {
     expect(NotifyClient).toHaveBeenCalledTimes(1)
     expect(NotifyClient).toHaveBeenCalledWith(testEnvVars.NOTIFY_CLIENT_API_KEY)
+  })
+
+  test('message is sent to Notify with correct details', async () => {
+    await sendMessage(context)
 
     const notifyClientMockInstance = NotifyClient.mock.instances[0]
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledTimes(1)
