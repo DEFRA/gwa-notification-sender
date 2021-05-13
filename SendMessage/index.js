@@ -1,13 +1,20 @@
+const { CosmosClient } = require('@azure/cosmos')
 const { NotifyClient } = require('notifications-node-client')
 const { v4: uuid } = require('uuid')
 
+const connectionString = process.env.COSMOS_DB_CONNECTION_STRING
+const dbName = process.env.COSMOS_DB_NAME
+const receiptContainerName = process.env.COSMOS_DB_RECEIPTS_CONTAINER
+const cosmosClient = new CosmosClient(connectionString)
+const db = cosmosClient.database(dbName)
+const receiptsContainer = db.container(receiptContainerName)
+
 const notifyClientApiKey = process.env.NOTIFY_CLIENT_API_KEY
 const notifyTemplateId = process.env.NOTIFY_TEMPLATE_ID
-
 const notifyClient = new NotifyClient(notifyClientApiKey)
 
 function isErrorOkToTryAgain (error) {
-  return ['EAI_AGAIN', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT'].includes(error?.code) || [403].includes(error?.status_code)
+  return ['EAI_AGAIN', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 409].includes(error?.code) || [403].includes(error?.status_code)
 }
 
 function isRateLimitExceeded (error) {
@@ -20,9 +27,12 @@ module.exports = async function (context) {
 
   try {
     const { message, phoneNumber } = notification
+    const reference = uuid()
+    await receiptsContainer.items.create({ id: reference, status: 'Sent to Notify', to: phoneNumber })
+
     await notifyClient.sendSms(notifyTemplateId, phoneNumber, {
       personalisation: { message },
-      reference: uuid()
+      reference
     })
   } catch (e) {
     const { dequeueCount } = context.bindingData

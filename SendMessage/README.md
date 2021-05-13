@@ -14,5 +14,16 @@ and
 [reference](https://docs.notifications.service.gov.uk/rest-api.html#reference-optional)
 are added to the request prior to sending to Notify.
 
+An item is added to the DB prior to sending with a status of `Sent to Notify`.
+When (if) the receipt for the notification is processed, this item will be
+updated with the
+[status from Notify](https://docs.notifications.service.gov.uk/rest-api.html#status-text-message).
+There are
+[numerous response codes](https://docs.microsoft.com/en-us/rest/api/cosmos-db/http-status-codes-for-cosmosdb)
+Cosmos DB can return. If the response code is `409` (the id already exists) the
+message will be treated in the same way as a rate limit failure and it will be
+retried. If the response from Cosmos is anything else it will be added to the
+failed queue for later analysis.
+
 If there is a problem with the sending of the message the error is caught,
 logged and added to another queue for later analysis.

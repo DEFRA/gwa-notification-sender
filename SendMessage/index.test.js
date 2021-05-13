@@ -11,16 +11,32 @@ describe('SendMessage function', () => {
   const message = 'message'
   const notification = { message, phoneNumber }
   const errors = [{ error: 'ValidationError', message: 'phone_number is required' }]
+  const uuidVal = 'd961effb-6779-4a90-ab51-86c2086de339'
 
-  let sendMessage
+  let CosmosClient
   let NotifyClient
+  let containerMock
+  let createMock
+  let sendMessage
 
   beforeEach(() => {
     jest.clearAllMocks()
     jest.resetModules()
 
+    CosmosClient = require('@azure/cosmos').CosmosClient
+    jest.mock('@azure/cosmos')
+    createMock = jest.fn()
+    containerMock = jest.fn(() => { return { items: { create: createMock } } })
+    CosmosClient.prototype.database.mockImplementation(() => {
+      return { container: containerMock }
+    })
+
     NotifyClient = require('notifications-node-client').NotifyClient
     jest.mock('notifications-node-client')
+
+    const { v4: uuid } = require('uuid')
+    jest.mock('uuid')
+    uuid.mockReturnValue(uuidVal)
 
     sendMessage = require('.')
 
@@ -28,22 +44,31 @@ describe('SendMessage function', () => {
     context.bindings = { notification }
   })
 
-  test('Notify client is correctly created on module import', async () => {
+  test('Notify and Cosmos clients are correctly created on module import', async () => {
     expect(NotifyClient).toHaveBeenCalledTimes(1)
     expect(NotifyClient).toHaveBeenCalledWith(testEnvVars.NOTIFY_CLIENT_API_KEY)
+
+    expect(CosmosClient).toHaveBeenCalledTimes(1)
+    expect(CosmosClient).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_CONNECTION_STRING)
+    const databaseMock = CosmosClient.mock.instances[0].database
+    expect(databaseMock).toHaveBeenCalledTimes(1)
+    expect(databaseMock).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_NAME)
+    expect(containerMock).toHaveBeenCalledTimes(1)
+    expect(containerMock).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_RECEIPTS_CONTAINER)
   })
 
-  test('message is sent to Notify with correct details', async () => {
+  test('message is sent to Notify and pending receipt created with correct details', async () => {
     await sendMessage(context)
 
     const notifyClientMockInstance = NotifyClient.mock.instances[0]
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledTimes(1)
-    expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(testEnvVars.NOTIFY_TEMPLATE_ID, phoneNumber,
-      expect.objectContaining({
-        personalisation: { message },
-        reference: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-      })
+    expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(
+      testEnvVars.NOTIFY_TEMPLATE_ID,
+      phoneNumber,
+      { personalisation: { message }, reference: uuidVal }
     )
+    expect(createMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Sent to Notify', to: phoneNumber })
   })
 
   test('rate limited failed notifications are added to rate limited output binding', async () => {
@@ -76,6 +101,39 @@ describe('SendMessage function', () => {
     expect(context.log.warn).toHaveBeenCalled()
   })
 
+  test('409 response from Cosmos will throw an error', async () => {
+    createMock.mockRejectedValue({ code: 409 })
+
+    await expect(sendMessage(context)).rejects.toThrow(Error)
+
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
+  })
+
+  test.each([
+    [{ code: 400 }],
+    [{ code: 401 }],
+    [{ code: 403 }],
+    [{ code: 408 }],
+    [{ code: 413 }],
+    [{ code: 423 }],
+    [{ code: 429 }],
+    [{ code: 500 }],
+    [{ code: 503 }]
+  ])('test case %#, unsuccessul responses from Cosmos (expect 409) are added to failed output binding, input - %o', async (error) => {
+    createMock.mockRejectedValue(error)
+
+    await sendMessage(context)
+
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
+    expect(context.bindings).toHaveProperty('failed')
+    expect(context.bindings.failed).toHaveProperty('error')
+    expect(context.bindings.failed.error).toMatchObject(error)
+    expect(context.bindings.failed).toHaveProperty(inputBindingName)
+    expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
+  })
+
   test('non-rate limited failed notifications with a dequeueCount of 5 are added to failed output binding', async () => {
     const errorStatusCode = 500
     context.bindingData.dequeueCount = 5
@@ -83,13 +141,13 @@ describe('SendMessage function', () => {
 
     await sendMessage(context)
 
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
     expect(context.bindings).toHaveProperty('failed')
     expect(context.bindings.failed).toHaveProperty('error')
     expect(context.bindings.failed.error).toMatchObject({ errors, status_code: errorStatusCode })
     expect(context.bindings.failed).toHaveProperty(inputBindingName)
     expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
-    expect(context.log.error).toHaveBeenCalled()
-    expect(context.log.warn).toHaveBeenCalled()
   })
 })
 
