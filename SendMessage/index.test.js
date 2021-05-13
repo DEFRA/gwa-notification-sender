@@ -57,7 +57,7 @@ describe('SendMessage function', () => {
     expect(containerMock).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_RECEIPTS_CONTAINER)
   })
 
-  test('message is sent to Notify with correct details', async () => {
+  test('message is sent to Notify and pending receipt created with correct details', async () => {
     await sendMessage(context)
 
     const notifyClientMockInstance = NotifyClient.mock.instances[0]
@@ -101,6 +101,39 @@ describe('SendMessage function', () => {
     expect(context.log.warn).toHaveBeenCalled()
   })
 
+  test('409 response from Cosmos will throw an error', async () => {
+    createMock.mockRejectedValue({ code: 409 })
+
+    await expect(sendMessage(context)).rejects.toThrow(Error)
+
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
+  })
+
+  test.each([
+    [{ code: 400 }],
+    [{ code: 401 }],
+    [{ code: 403 }],
+    [{ code: 408 }],
+    [{ code: 413 }],
+    [{ code: 423 }],
+    [{ code: 429 }],
+    [{ code: 500 }],
+    [{ code: 503 }]
+  ])('test case %#, unsuccessul responses from Cosmos (expect 409) are added to failed output binding, input - %o', async (error) => {
+    createMock.mockRejectedValue(error)
+
+    await sendMessage(context)
+
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
+    expect(context.bindings).toHaveProperty('failed')
+    expect(context.bindings.failed).toHaveProperty('error')
+    expect(context.bindings.failed.error).toMatchObject(error)
+    expect(context.bindings.failed).toHaveProperty(inputBindingName)
+    expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
+  })
+
   test('non-rate limited failed notifications with a dequeueCount of 5 are added to failed output binding', async () => {
     const errorStatusCode = 500
     context.bindingData.dequeueCount = 5
@@ -108,13 +141,13 @@ describe('SendMessage function', () => {
 
     await sendMessage(context)
 
+    expect(context.log.error).toHaveBeenCalled()
+    expect(context.log.warn).toHaveBeenCalled()
     expect(context.bindings).toHaveProperty('failed')
     expect(context.bindings.failed).toHaveProperty('error')
     expect(context.bindings.failed.error).toMatchObject({ errors, status_code: errorStatusCode })
     expect(context.bindings.failed).toHaveProperty(inputBindingName)
     expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
-    expect(context.log.error).toHaveBeenCalled()
-    expect(context.log.warn).toHaveBeenCalled()
   })
 })
 

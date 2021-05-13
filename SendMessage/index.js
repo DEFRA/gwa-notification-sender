@@ -14,7 +14,7 @@ const notifyTemplateId = process.env.NOTIFY_TEMPLATE_ID
 const notifyClient = new NotifyClient(notifyClientApiKey)
 
 function isErrorOkToTryAgain (error) {
-  return ['EAI_AGAIN', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT'].includes(error?.code) || [403].includes(error?.status_code)
+  return ['EAI_AGAIN', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 409].includes(error?.code) || [403].includes(error?.status_code)
 }
 
 function isRateLimitExceeded (error) {
