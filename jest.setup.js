@@ -1,6 +1,9 @@
 const envVars = require('./test/testEnvVars')
 
 process.env.AzureWebJobsStorage = envVars.AzureWebJobsStorage
+process.env.COSMOS_DB_CONNECTION_STRING = envVars.COSMOS_DB_CONNECTION_STRING
+process.env.COSMOS_DB_NAME = envVars.COSMOS_DB_NAME
+process.env.COSMOS_DB_RECEIPTS_CONTAINER = envVars.COSMOS_DB_RECEIPTS_CONTAINER
 process.env.CONTACT_LIST_BATCHES_CONTAINER = envVars.CONTACT_LIST_BATCHES_CONTAINER
 process.env.CONTACT_LIST_CONTAINER = envVars.CONTACT_LIST_CONTAINER
 process.env.CONTACT_LIST_BATCHES_QUEUE = envVars.CONTACT_LIST_BATCHES_QUEUE

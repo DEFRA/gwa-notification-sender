@@ -11,16 +11,32 @@ describe('SendMessage function', () => {
   const message = 'message'
   const notification = { message, phoneNumber }
   const errors = [{ error: 'ValidationError', message: 'phone_number is required' }]
+  const uuidVal = 'd961effb-6779-4a90-ab51-86c2086de339'
 
-  let sendMessage
+  let CosmosClient
   let NotifyClient
+  let containerMock
+  let createMock
+  let sendMessage
 
   beforeEach(() => {
     jest.clearAllMocks()
     jest.resetModules()
 
+    CosmosClient = require('@azure/cosmos').CosmosClient
+    jest.mock('@azure/cosmos')
+    createMock = jest.fn()
+    containerMock = jest.fn(() => { return { items: { create: createMock } } })
+    CosmosClient.prototype.database.mockImplementation(() => {
+      return { container: containerMock }
+    })
+
     NotifyClient = require('notifications-node-client').NotifyClient
     jest.mock('notifications-node-client')
+
+    const { v4: uuid } = require('uuid')
+    jest.mock('uuid')
+    uuid.mockReturnValue(uuidVal)
 
     sendMessage = require('.')
 
@@ -28,9 +44,17 @@ describe('SendMessage function', () => {
     context.bindings = { notification }
   })
 
-  test('Notify client is correctly created on module import', async () => {
+  test('Notify and Cosmos clients are correctly created on module import', async () => {
     expect(NotifyClient).toHaveBeenCalledTimes(1)
     expect(NotifyClient).toHaveBeenCalledWith(testEnvVars.NOTIFY_CLIENT_API_KEY)
+
+    expect(CosmosClient).toHaveBeenCalledTimes(1)
+    expect(CosmosClient).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_CONNECTION_STRING)
+    const databaseMock = CosmosClient.mock.instances[0].database
+    expect(databaseMock).toHaveBeenCalledTimes(1)
+    expect(databaseMock).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_NAME)
+    expect(containerMock).toHaveBeenCalledTimes(1)
+    expect(containerMock).toHaveBeenCalledWith(testEnvVars.COSMOS_DB_RECEIPTS_CONTAINER)
   })
 
   test('message is sent to Notify with correct details', async () => {
@@ -38,12 +62,13 @@ describe('SendMessage function', () => {
 
     const notifyClientMockInstance = NotifyClient.mock.instances[0]
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledTimes(1)
-    expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(testEnvVars.NOTIFY_TEMPLATE_ID, phoneNumber,
-      expect.objectContaining({
-        personalisation: { message },
-        reference: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i)
-      })
+    expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(
+      testEnvVars.NOTIFY_TEMPLATE_ID,
+      phoneNumber,
+      { personalisation: { message }, reference: uuidVal }
     )
+    expect(createMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Sent to Notify', to: phoneNumber })
   })
 
   test('rate limited failed notifications are added to rate limited output binding', async () => {
