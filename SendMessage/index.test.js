@@ -17,6 +17,8 @@ describe('SendMessage function', () => {
   let NotifyClient
   let containerMock
   let createMock
+  let itemMock
+  let replaceMock
   let sendMessage
 
   beforeEach(() => {
@@ -25,8 +27,19 @@ describe('SendMessage function', () => {
 
     CosmosClient = require('@azure/cosmos').CosmosClient
     jest.mock('@azure/cosmos')
+    replaceMock = jest.fn()
+    itemMock = jest.fn(() => {
+      return {
+        replace: replaceMock
+      }
+    })
     createMock = jest.fn()
-    containerMock = jest.fn(() => { return { items: { create: createMock } } })
+    containerMock = jest.fn(() => {
+      return {
+        item: itemMock,
+        items: { create: createMock }
+      }
+    })
     CosmosClient.prototype.database.mockImplementation(() => {
       return { container: containerMock }
     })
@@ -68,7 +81,7 @@ describe('SendMessage function', () => {
       { personalisation: { message }, reference: uuidVal }
     )
     expect(createMock).toHaveBeenCalledTimes(1)
-    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Sent to Notify', to: phoneNumber })
+    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Sent to Notify', to: phoneNumber })
   })
 
   test('rate limited failed notifications are added to rate limited output binding', async () => {
@@ -83,6 +96,10 @@ describe('SendMessage function', () => {
     expect(context.bindings[rateLimitExceededQueueName]).toHaveProperty(inputBindingName)
     expect(context.bindings[rateLimitExceededQueueName][inputBindingName]).toMatchObject(notification)
     expect(context.log.error).toHaveBeenCalled()
+    expect(itemMock).toHaveBeenCalledTimes(1)
+    expect(itemMock).toHaveBeenCalledWith(uuidVal)
+    expect(replaceMock).toHaveBeenCalledTimes(1)
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Rate limit exceeded', to: phoneNumber })
   })
 
   test.each([
@@ -99,6 +116,10 @@ describe('SendMessage function', () => {
 
     expect(context.log.error).toHaveBeenCalled()
     expect(context.log.warn).toHaveBeenCalled()
+    expect(itemMock).toHaveBeenCalledTimes(1)
+    expect(itemMock).toHaveBeenCalledWith(uuidVal)
+    expect(replaceMock).toHaveBeenCalledTimes(1)
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: To be retried', to: phoneNumber })
   })
 
   test('409 response from Cosmos will throw an error', async () => {
@@ -108,6 +129,10 @@ describe('SendMessage function', () => {
 
     expect(context.log.error).toHaveBeenCalled()
     expect(context.log.warn).toHaveBeenCalled()
+    expect(itemMock).toHaveBeenCalledTimes(1)
+    expect(itemMock).toHaveBeenCalledWith(uuidVal)
+    expect(replaceMock).toHaveBeenCalledTimes(1)
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Conflict', to: phoneNumber })
   })
 
   test.each([
@@ -132,6 +157,10 @@ describe('SendMessage function', () => {
     expect(context.bindings.failed.error).toMatchObject(error)
     expect(context.bindings.failed).toHaveProperty(inputBindingName)
     expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
+    expect(itemMock).toHaveBeenCalledTimes(1)
+    expect(itemMock).toHaveBeenCalledWith(uuidVal)
+    expect(replaceMock).toHaveBeenCalledTimes(1)
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Failed to send', to: phoneNumber })
   })
 
   test('non-rate limited failed notifications with a dequeueCount of 5 are added to failed output binding', async () => {
@@ -148,6 +177,10 @@ describe('SendMessage function', () => {
     expect(context.bindings.failed.error).toMatchObject({ errors, status_code: errorStatusCode })
     expect(context.bindings.failed).toHaveProperty(inputBindingName)
     expect(context.bindings.failed[inputBindingName]).toMatchObject(notification)
+    expect(itemMock).toHaveBeenCalledTimes(1)
+    expect(itemMock).toHaveBeenCalledWith(uuidVal)
+    expect(replaceMock).toHaveBeenCalledTimes(1)
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Failed to send', to: phoneNumber })
   })
 })
 
