@@ -71,7 +71,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
     await processRateLimitedMessages(context)
 
-    expect(context.log).toHaveBeenCalledTimes(2)
+    expect(context.log).toHaveBeenCalledTimes(1)
     expect(context.log).toHaveBeenCalledWith('Not OK to start processing messages.')
   })
 
@@ -147,7 +147,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
       await expect(processRateLimitedMessages(context)).rejects.toThrow(Error)
 
-      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenCalledTimes(2)
     })
 
     test('errors generated during creating resources for queue to send messages to will be handled', async () => {
