@@ -19,7 +19,7 @@ async function ensureResourcesExist (context) {
       failedToSendQueueClient.createIfNotExists(),
       batchesContainerClient.createIfNotExists()
     ])
-    .then(values => context.log(`Output from ensureResourcesExist: ${values}.`))
+    .then(values => context.log(`Resources created from ensureResourcesExist: ${values.map(x => x.succeeded).join(', ')}.`))
     .catch(error => context.log.error(`Error output from ensureResourcesExist: ${error}.`))
 }
 

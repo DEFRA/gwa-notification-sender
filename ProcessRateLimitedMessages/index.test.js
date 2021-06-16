@@ -51,7 +51,7 @@ describe('ProcessRateLimitedMessages function', () => {
   })
 
   test('resources will be created if they do not exist and log the output', async () => {
-    const values = [1, 2, 3]
+    const values = [{ succeeded: true }, { succeeded: false }, { succeeded: true }]
     QueueClient.prototype.createIfNotExists.mockResolvedValueOnce(values[0])
     QueueClient.prototype.createIfNotExists.mockResolvedValueOnce(values[1])
     ContainerClient.prototype.createIfNotExists.mockResolvedValueOnce(values[2])
@@ -63,7 +63,7 @@ describe('ProcessRateLimitedMessages function', () => {
     expect(ContainerClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[0].createIfNotExists).toHaveBeenCalledTimes(1)
     expect(QueueClient.mock.instances[1].createIfNotExists).toHaveBeenCalledTimes(1)
-    expect(context.log).toHaveBeenNthCalledWith(1, `Output from ensureResourcesExist: ${values}.`)
+    expect(context.log).toHaveBeenNthCalledWith(1, `Resources created from ensureResourcesExist: ${values.map(x => x.succeeded).join(', ')}.`)
   })
 
   test('messages are not sent when batches still exist', async () => {
@@ -71,7 +71,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
     await processRateLimitedMessages(context)
 
-    expect(context.log).toHaveBeenCalledTimes(2)
+    expect(context.log).toHaveBeenCalledTimes(1)
     expect(context.log).toHaveBeenCalledWith('Not OK to start processing messages.')
   })
 
@@ -147,7 +147,7 @@ describe('ProcessRateLimitedMessages function', () => {
 
       await expect(processRateLimitedMessages(context)).rejects.toThrow(Error)
 
-      expect(context.log.error).toHaveBeenCalledTimes(1)
+      expect(context.log.error).toHaveBeenCalledTimes(2)
     })
 
     test('errors generated during creating resources for queue to send messages to will be handled', async () => {
