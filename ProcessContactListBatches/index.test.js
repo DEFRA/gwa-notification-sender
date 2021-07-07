@@ -5,7 +5,6 @@ const outputBindingName = 'messagesToSend'
 
 describe('ProcessContactListBatches function', () => {
   const { Readable } = require('stream').Stream
-
   const context = require('../test/defaultContext')
   const generateContacts = require('../test/generateContacts')
 
@@ -18,6 +17,7 @@ describe('ProcessContactListBatches function', () => {
   }
 
   let deleteMock
+  const messageId = '84eda6bf-79fc-4475-a56e-a0ebbbcbe557'
 
   function setMockDownload (contents, encoding) {
     const mockReadable = new Readable({ read () {} })
@@ -59,7 +59,7 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('file specified in message is downloaded and deleted', async () => {
-    const contents = { contacts: [], message: 'messages' }
+    const contents = { contacts: [], message: { id: messageId, message: 'message text' } }
     setMockDownload(contents)
 
     await processContactListBatches(context)
@@ -71,8 +71,9 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('a message is sent for a single contact in the batch', async () => {
-    const phoneNumber = '07000111222'
-    const message = 'message to send to a batch of contacts'
+    const phoneNumber = '07700111222'
+    const messageText = 'message to send to a batch of contacts'
+    const message = { id: messageId, message: messageText }
     setMockDownload({ contacts: [{ phoneNumber }], message })
 
     await processContactListBatches(context)
@@ -87,7 +88,8 @@ describe('ProcessContactListBatches function', () => {
   test('a message is sent for several contacts in the batch', async () => {
     const numberOfContacts = 10
     const contacts = generateContacts(numberOfContacts)
-    const message = 'message to send to a batch of contacts'
+    const messageText = 'message to send to a batch of contacts'
+    const message = { id: messageId, message: messageText }
     const rawFileContents = { contacts, message }
     setMockDownload(rawFileContents)
 
@@ -101,7 +103,8 @@ describe('ProcessContactListBatches function', () => {
   })
 
   test('file downloads when contents are utf8 encoded', async () => {
-    setMockDownload({ contacts: [], message: 'messages' }, 'utf8')
+    const message = { id: messageId, message: 'messages' }
+    setMockDownload({ contacts: [], message }, 'utf8')
 
     await processContactListBatches(context)
 
