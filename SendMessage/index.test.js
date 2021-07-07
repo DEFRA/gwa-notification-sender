@@ -7,8 +7,10 @@ const inputBindingName = 'notification'
 const rateLimitExceededQueueName = 'rateLimitExceeded'
 
 describe('SendMessage function', () => {
-  const phoneNumber = '07000111222'
-  const message = 'message'
+  const messageId = '84eda6bf-79fc-4475-a56e-a0ebbbcbe557'
+  const phoneNumber = '077000111222'
+  const messageText = 'messageText'
+  const message = { id: messageId, message: messageText }
   const notification = { message, phoneNumber }
   const errors = [{ error: 'ValidationError', message: 'phone_number is required' }]
   const uuidVal = 'd961effb-6779-4a90-ab51-86c2086de339'
@@ -78,10 +80,10 @@ describe('SendMessage function', () => {
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(
       testEnvVars.NOTIFY_TEMPLATE_ID,
       phoneNumber,
-      { personalisation: { message }, reference: uuidVal }
+      { personalisation: { message: messageText }, reference: uuidVal }
     )
     expect(createMock).toHaveBeenCalledTimes(1)
-    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Sent to Notify', to: phoneNumber })
+    expect(createMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Sent to Notify', to: phoneNumber })
   })
 
   test('rate limited failed notifications are added to rate limited output binding', async () => {
@@ -99,7 +101,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Rate limit exceeded', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Rate limit exceeded', to: phoneNumber })
   })
 
   test.each([
@@ -119,7 +121,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: To be retried', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: To be retried', to: phoneNumber })
   })
 
   test('409 response from Cosmos will throw an error', async () => {
@@ -132,7 +134,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Conflict', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Conflict', to: phoneNumber })
   })
 
   test.each([
@@ -160,7 +162,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Failed to send', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Failed to send', to: phoneNumber })
   })
 
   test('non-rate limited failed notifications with a dequeueCount of 5 are added to failed output binding', async () => {
@@ -180,7 +182,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, status: 'Internal: Failed to send', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Failed to send', to: phoneNumber })
   })
 })
 
