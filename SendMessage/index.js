@@ -46,7 +46,7 @@ module.exports = async function (context) {
   try {
     const { message: { id, message }, phoneNumber } = notification
     const receiptId = uuid()
-    // See README for info on reference construction and use.
+    // See README for more info on `reference`.
     const reference = `${id}:${receiptId}`
     receipt = { id: receiptId, messageId: id, status: 'Internal: Sent to Notify', to: phoneNumber }
 
