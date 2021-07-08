@@ -7,8 +7,8 @@
 
 The function triggers on messages in an Azure Queue Storage queue that have
 been added by [ProcessContactListBatches](../ProcessContactListBatches).
-The message includes the phone number to send the message to, the message
-to send and the id of the message being sent. A
+The message includes the phone number to send the message to, the text of the
+message and the id of the message being sent. A
 [template id](https://docs.notifications.service.gov.uk/rest-api.html#request-body)
 and
 [reference](https://docs.notifications.service.gov.uk/rest-api.html#reference-optional)

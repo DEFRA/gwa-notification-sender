@@ -9,8 +9,8 @@ const rateLimitExceededQueueName = 'rateLimitExceeded'
 describe('SendMessage function', () => {
   const messageId = '84eda6bf-79fc-4475-a56e-a0ebbbcbe557'
   const phoneNumber = '077000111222'
-  const messageText = 'messageText'
-  const message = { id: messageId, message: messageText }
+  const text = 'some text for the message'
+  const message = { id: messageId, text }
   const notification = { message, phoneNumber }
   const errors = [{ error: 'ValidationError', message: 'phone_number is required' }]
   const uuidVal = 'd961effb-6779-4a90-ab51-86c2086de339'
@@ -80,7 +80,7 @@ describe('SendMessage function', () => {
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(
       testEnvVars.NOTIFY_TEMPLATE_ID,
       phoneNumber,
-      { personalisation: { message: messageText }, reference: `${messageId}:${uuidVal}` }
+      { personalisation: { text }, reference: `${messageId}:${uuidVal}` }
     )
     expect(createMock).toHaveBeenCalledTimes(1)
     expect(createMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Sent to Notify', to: phoneNumber })
