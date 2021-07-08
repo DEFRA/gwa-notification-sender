@@ -80,7 +80,7 @@ describe('SendMessage function', () => {
     expect(notifyClientMockInstance.sendSms).toHaveBeenCalledWith(
       testEnvVars.NOTIFY_TEMPLATE_ID,
       phoneNumber,
-      { personalisation: { message: messageText }, reference: uuidVal }
+      { personalisation: { message: messageText }, reference: `${messageId}:${uuidVal}` }
     )
     expect(createMock).toHaveBeenCalledTimes(1)
     expect(createMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Sent to Notify', to: phoneNumber })

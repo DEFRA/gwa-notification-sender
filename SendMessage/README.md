@@ -13,6 +13,10 @@ to send and the id of the message being sent. A
 and
 [reference](https://docs.notifications.service.gov.uk/rest-api.html#reference-optional)
 are added to the request prior to sending to Notify.
+The reference is constructed from the id of the message and the id of the
+receipt in the format `messageId:receiptId`. The reason for this is to provide
+the information to the receipt function app within the callback it receives
+from Notify.
 
 An item is added to the DB prior to sending with a status of
 `Internal: Sent to Notify`. When (if) the receipt for the notification is

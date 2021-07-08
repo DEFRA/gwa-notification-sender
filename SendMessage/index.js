@@ -45,8 +45,10 @@ module.exports = async function (context) {
 
   try {
     const { message: { id, message }, phoneNumber } = notification
-    const reference = uuid()
-    receipt = { id: reference, messageId: id, status: 'Internal: Sent to Notify', to: phoneNumber }
+    const receiptId = uuid()
+    // See README for info on reference construction and use.
+    const reference = `${id}:${receiptId}`
+    receipt = { id: receiptId, messageId: id, status: 'Internal: Sent to Notify', to: phoneNumber }
 
     await receiptsContainer.items.create(receipt)
 
