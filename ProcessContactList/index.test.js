@@ -6,7 +6,7 @@ describe('ProcessContactList function', () => {
   const context = require('../test/defaultContext')
   const generateContacts = require('../test/generateContacts')
 
-  const message = 'message to send'
+  const message = { id: '13a8b9da-33e0-49a4-b099-a9e41b0c7b36', message: 'message to send' }
   const blobContents = Buffer.from(JSON.stringify({ contacts: [], message }))
 
   let processContactList

@@ -44,14 +44,16 @@ module.exports = async function (context) {
   let receipt
 
   try {
-    const { message, phoneNumber } = notification
-    const reference = uuid()
-    receipt = { id: reference, status: 'Internal: Sent to Notify', to: phoneNumber }
+    const { message: { id, text }, phoneNumber } = notification
+    const receiptId = uuid()
+    // See README for more info on `reference`.
+    const reference = `${id}:${receiptId}`
+    receipt = { id: receiptId, messageId: id, status: 'Internal: Sent to Notify', to: phoneNumber }
 
     await receiptsContainer.items.create(receipt)
 
     await notifyClient.sendSms(notifyTemplateId, phoneNumber, {
-      personalisation: { message },
+      personalisation: { text },
       reference
     })
   } catch (e) {
