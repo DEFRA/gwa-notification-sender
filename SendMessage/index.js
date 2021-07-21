@@ -1,7 +1,7 @@
 const { CosmosClient } = require('@azure/cosmos')
 const { NotifyClient } = require('notifications-node-client')
 const { v4: uuid } = require('uuid')
-const statusMessages = require('../lib/status-messages')
+const receiptStatuses = require('../lib/receipt-statuses')
 
 const connectionString = process.env.COSMOS_DB_CONNECTION_STRING
 const dbName = process.env.COSMOS_DB_NAME
@@ -49,7 +49,7 @@ module.exports = async function (context) {
     const receiptId = uuid()
     // See README for more info on `reference`.
     const reference = `${id}:${receiptId}`
-    receipt = { id: receiptId, messageId: id, status: statusMessages.sent, to: phoneNumber }
+    receipt = { id: receiptId, messageId: id, status: receiptStatuses.sent, to: phoneNumber }
 
     await receiptsContainer.items.create(receipt)
 
@@ -63,7 +63,7 @@ module.exports = async function (context) {
     context.log.error(error)
 
     if (isRateLimitExceeded(error)) {
-      await replaceReceipt(receipt, statusMessages.rateLimited)
+      await replaceReceipt(receipt, receiptStatuses.rateLimited)
       // Do not rethrow, move to rateLimitExceeded queue.
       context.bindings.rateLimitExceeded = {
         error,
@@ -74,13 +74,13 @@ module.exports = async function (context) {
       // (default 5). We don't want to use poision queue as it doesn't include
       // the error message so add to failed queue.
       if (dequeueCount < 5 && isErrorOkToTryAgain(error)) {
-        await replaceReceipt(receipt, statusMessages.retry)
+        await replaceReceipt(receipt, receiptStatuses.retry)
         warnAndThrow(context, notification, e)
       } else if (isErrorDBConflict(error)) {
-        await replaceReceipt(receipt, statusMessages.dbConflict)
+        await replaceReceipt(receipt, receiptStatuses.dbConflict)
         warnAndThrow(context, notification, e)
       } else {
-        await replaceReceipt(receipt, statusMessages.failedToSend)
+        await replaceReceipt(receipt, receiptStatuses.failedToSend)
         context.log.warn('add to failed queue')
         // Add to failed queue for later analysis, no auto reprocessing
         context.bindings.failed = {

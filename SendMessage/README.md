@@ -30,8 +30,7 @@ statuses returned by Notify which are prepended with `Notify:`.
 
 Statuses are used within [gwa-web](https://github.com/DEFRA/gwa-web) for
 reporting the status of the message sending. Making changes to the statuses
-here will require associated changes else the reporting is likely to be
-inaccurate.
+here may require changes in that project.
 
 There are
 [numerous response codes](https://docs.microsoft.com/en-us/rest/api/cosmos-db/http-status-codes-for-cosmosdb)
