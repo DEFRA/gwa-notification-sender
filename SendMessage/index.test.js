@@ -134,7 +134,7 @@ describe('SendMessage function', () => {
     expect(itemMock).toHaveBeenCalledTimes(1)
     expect(itemMock).toHaveBeenCalledWith(uuidVal)
     expect(replaceMock).toHaveBeenCalledTimes(1)
-    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: Conflict', to: phoneNumber })
+    expect(replaceMock).toHaveBeenCalledWith({ id: uuidVal, messageId, status: 'Internal: DB conflict', to: phoneNumber })
   })
 
   test.each([
