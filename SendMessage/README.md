@@ -28,6 +28,10 @@ appropriate to the failure reason.
 All statuses are appended with `Internal:` to differentiate them from the
 statuses returned by Notify which are prepended with `Notify:`.
 
+Statuses are used within [gwa-web](https://github.com/DEFRA/gwa-web) for
+reporting the status of the message sending. Making changes to the statuses
+here may require changes in that project.
+
 There are
 [numerous response codes](https://docs.microsoft.com/en-us/rest/api/cosmos-db/http-status-codes-for-cosmosdb)
 Cosmos DB can return. If the response code is `409` (the id already exists) the
